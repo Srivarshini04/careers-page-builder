@@ -177,9 +177,18 @@ try {
     (await preview().locator('iframe[title*="culture video"]').count()) === 1,
   );
 
+  // Every structure group open is the worst case: the panel's content is several times
+  // the viewport, and it must stay inside the panel rather than growing the page.
+  for (const group of ["Branding", "Content", "Sections", "Publish"]) await openGroup(group);
+  await page.waitForTimeout(600);
   check(
-    "builder window itself does not scroll",
-    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1),
+    "builder window does not scroll with every group expanded",
+    await page.evaluate(() => {
+      window.scrollTo(0, 99999);
+      const scrolled = window.scrollY;
+      window.scrollTo(0, 0);
+      return scrolled === 0 && document.documentElement.scrollHeight <= window.innerHeight + 1;
+    }),
   );
 
   // ---------------------------------------------------------------- builder: sections

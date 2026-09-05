@@ -139,10 +139,16 @@ export function EditorShell({
   );
 
   return (
-    /* Fixed app shell on desktop: the window never scrolls, only the structure panel
-       and the preview do. Below lg the layout stacks and scrolls normally, which is
-       the right behaviour on a phone. */
-    <div className="flex min-h-screen flex-col bg-ink-100 lg:h-screen lg:min-h-0 lg:overflow-hidden">
+    /*
+     * Desktop is a genuinely fixed shell — `fixed inset-0`, not just `h-screen` — so the
+     * builder occupies the viewport and contributes nothing to document scroll height.
+     * Height plus overflow-hidden was not enough: the structure panel's content still
+     * counted toward the page's scrollable area once every group was expanded, which
+     * let the window scroll and left dead space below the shell. Taking it out of flow
+     * removes the question entirely. Below lg it stays in flow and scrolls normally,
+     * which is the right behaviour on a phone.
+     */
+    <div className="flex min-h-screen flex-col bg-ink-100 lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden">
       <header className="sticky top-0 z-40 border-b border-ink-200 bg-white">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -241,10 +247,16 @@ export function EditorShell({
         ) : null}
       </header>
 
-      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row lg:items-stretch">
+      {/*
+       * Every level between the app shell and the two scroll panes clips at lg. Without
+       * that, the panel's tall content still counts toward the document scroll height —
+       * Chrome ignores it, but other engines let the whole page scroll and leave dead
+       * space under the shell once every group is expanded.
+       */}
+      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row lg:items-stretch lg:overflow-hidden">
         {/* Controls */}
-        <div className="w-full border-b border-ink-200 bg-white lg:w-100 lg:shrink-0 lg:border-r lg:border-b-0">
-          <div className="flex h-full flex-col lg:min-h-0">
+        <div className="w-full border-b border-ink-200 bg-white lg:w-100 lg:shrink-0 lg:overflow-hidden lg:border-r lg:border-b-0">
+          <div className="flex h-full flex-col lg:min-h-0 lg:overflow-hidden">
             <div className="flex items-center gap-2 border-b border-ink-200 px-4 py-3.5">
               <PanelsTopLeft aria-hidden="true" className="h-4 w-4 text-ink-500" />
               <h2 className="text-sm font-semibold text-ink-900">Page structure</h2>
@@ -293,7 +305,7 @@ export function EditorShell({
         </div>
 
         {/* Live preview */}
-        <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:min-h-0">
+        <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:min-h-0 lg:overflow-hidden">
           <div className="mb-1 flex justify-end">
             <Link
               href={`/${company.slug}/preview`}
