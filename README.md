@@ -61,7 +61,7 @@ _Two or three paragraphs, first person. Suggested things to cover:_
 | UI        | React 19, Tailwind CSS v4, lucide-react |
 | Database  | Supabase Postgres + Row Level Security  |
 | Auth      | Supabase Auth (`@supabase/ssr`)         |
-| Tests     | Vitest                                  |
+| Tests     | Vitest (unit) + Playwright (end-to-end) |
 | Hosting   | Vercel                                  |
 
 ### ✍️ YOUR WORDS — Why this stack
@@ -118,7 +118,7 @@ src/
     go/                           Post-login hop → the recruiter's company builder
     actions/auth.ts               Sign-out server action
     [companySlug]/
-      careers/                    PUBLIC candidate page (+ loading skeleton)
+      careers/                    PUBLIC candidate page (no loading.tsx — see note in page.tsx)
       preview/                    Recruiter-only full-page preview
       edit/                       The builder (+ actions.ts, loading skeleton)
       not-found.tsx               Unknown or unpublished slug
@@ -142,7 +142,10 @@ src/
 supabase/
   schema.sql                      Tables, indexes, triggers, RLS policies
   seed.sql                        2 demo companies, 9 sections, 14 jobs
-tests/                            Vitest unit tests (36)
+  migrations/                     Policy changes applied after the initial schema
+tests/
+  *.test.ts                       Vitest unit tests (36)
+  e2e/                            Playwright end-to-end suite (40 checks)
 ```
 
 ---
@@ -190,11 +193,17 @@ The Supabase **service_role** key is deliberately not used anywhere in this app.
 ### 5. Run
 
 ```bash
-npm run dev        # http://localhost:3000
-npm run build      # production build
-npm test           # 36 unit tests
-npm run typecheck  # tsc --noEmit
-npm run lint       # eslint
+npm run dev          # http://localhost:3000
+npm run build        # production build
+npm test             # 36 unit tests (no server or database needed)
+npm run typecheck    # tsc --noEmit
+npm run lint         # eslint
+
+# Optional — end-to-end run against a live dev server + Supabase.
+# Needs `npm run dev` running and `npx playwright install chromium`
+# (or PW_CHANNEL=chrome to reuse a system Chrome install).
+npm run test:e2e     # 40 browser checks; restores demo data when it finishes
+npm run reset:demo   # restore the demo companies to their seeded state
 ```
 
 ---
@@ -339,15 +348,21 @@ _What you'd do next, roughly ordered, and why that order. Some candidates:_
 - _ISR/edge caching for anonymous traffic on `/[slug]/careers`_
 - _Server-side job search with the trigram index, plus pagination_
 - _`company_members` table for real teams and roles_
-- _Playwright end-to-end tests for the save → publish → browse path_
+- _Run the existing Playwright suite in CI against a throwaway Supabase project_
 
 ---
 
 ## Tests
 
-```bash
-npm test
-```
+**Unit tests — `npm test`.** 36 tests covering job search/filter logic, rich-text
+parsing, video URL normalisation, brand-colour contrast, and server-side payload
+validation. Pure functions only, so they run in under a second with no server or
+database.
 
-36 unit tests covering job search/filter logic, rich-text parsing, video URL
-normalisation, brand-colour contrast, and server-side payload validation.
+**End-to-end — `npm run test:e2e`.** 40 checks driving a real browser against a real dev
+server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
+sections, save, reload and confirm persistence, preview, the public page, search, both
+filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an
+unknown slug, no horizontal overflow at 375px, and tenant separation between the two
+companies. It mutates demo data on purpose — proving saves reach Postgres is the point —
+then restores the seeded state on the way out.

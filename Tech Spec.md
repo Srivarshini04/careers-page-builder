@@ -274,6 +274,14 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
+**End-to-end (Playwright, 40 checks — `npm run test:e2e`):**
+
+Drives a real browser against a real dev server and a real Supabase project, covering
+the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,
+a genuine 404 status on an unknown slug, zero horizontal overflow at 375px, and tenant
+separation. It mutates demo data deliberately (proving a save reaches Postgres is the
+whole point) and restores the seeded state when it finishes.
+
 **Manual test plan:**
 
 | # | Step                                     | Expected |
@@ -366,7 +374,7 @@ Roughly in the order you'd do them:
 3. ISR/edge caching for `/[slug]/careers`
 4. Server-side job search and pagination
 5. `company_members` for teams and roles
-6. Playwright end-to-end tests for save → publish → browse
+6. Run the existing Playwright suite in CI against a throwaway Supabase project
 7. Section templates and a "reset to sample content" affordance
 8. Analytics: views per page, filter usage, click-through to roles
 9. Custom domains per company
