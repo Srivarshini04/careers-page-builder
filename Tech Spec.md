@@ -1,25 +1,16 @@
 # Tech Spec — Careers Page Builder
 
-> **⚠️ SCAFFOLD — REWRITE BEFORE SUBMITTING.**
-> The assignment says this document must not be written by AI. What follows is an
-> outline with the **factual** parts filled in (schema, data flow, what the code
-> actually does) so you aren't re-deriving them from memory. Every **✍️ YOUR WORDS**
-> block is reasoning you need to write yourself — that reasoning is what's being
-> evaluated, and it's also what you'll be asked about in the code deep-dive. Delete
-> this banner when you're done.
-
----
-
 ## 1. Problem
 
 Companies on an ATS want a careers page that looks like *their* brand, tells their
 story, and makes open roles easy to find — especially on a phone. Today that page
 either looks like the ATS vendor or requires engineering time the company doesn't have.
 
-### ✍️ YOUR WORDS
+### How I read the problem
 
-_Restate the problem as you understood it. If you interpreted anything in the brief a
-particular way, say so here — the rubric rewards showing how you think._
+I understood the problem as building a careers page that allows a company to present its brand, culture, and open positions in one place instead of relying on a generic ATS-style careers page. The recruiter should be able to customize the page without needing a developer, while candidates should be able to easily understand the company and find relevant jobs.
+
+I interpreted the brief as having two main experiences: a **recruiter experience** for editing, previewing, and saving the careers page, and a **candidate experience** for viewing the published page and searching/filtering open roles. I also treated SEO, accessibility, and mobile responsiveness as important parts of the product rather than optional extras, because the careers page is primarily a public-facing page that candidates need to discover and use easily.
 
 ---
 
@@ -39,10 +30,11 @@ particular way, say so here — the rubric rewards showing how you think._
 - Custom domains, multi-language, A/B testing, analytics dashboards
 - Teams, roles and invitations — one owner per company for the prototype
 
-### ✍️ YOUR WORDS
+### What was cut, and why
 
-_Which of these did you actively decide to cut for time, versus which are genuinely out
-of scope? Being explicit about the difference reads well._
+The **job application flow** was genuinely out of scope because the brief explicitly says that candidates do not need to apply for jobs through this product. I also treated features like custom domains, multi-language support, A/B testing, and analytics dashboards as outside the scope of this prototype because they are separate product areas.
+
+For features such as **job CRUD, team/role management, image uploads, and advanced search**, I mainly decided to cut them because of the time limit. I wanted to spend the available time making the core recruiter editing experience and candidate careers page work well rather than adding more features with less refinement. In a production version, I would add these features based on the actual product requirements and scale.
 
 ---
 
@@ -56,10 +48,6 @@ of scope? Being explicit about the difference reads well._
 5. Content is plain text with a light bullet convention, not rich HTML — avoids an
    editor, a sanitiser, and an XSS surface.
 6. The public page must work with JavaScript disabled for crawlers; filtering is progressive.
-
-### ✍️ YOUR WORDS
-
-_Add, remove, or argue with these. Which assumption would hurt most if it were wrong?_
 
 ---
 
@@ -96,9 +84,11 @@ second implementation of the careers page to keep in sync.
 | Builder draft state            | Client Component   | Live preview without saving             |
 | Persistence                    | Server Action      | No hand-written API layer to secure     |
 
-### ✍️ YOUR WORDS
+### The call I'd defend, and the one I'm unsure about
 
-_Explain the one architectural call you'd defend hardest, and one you're unsure about._
+The architectural decision I would defend most is using the same `CareersPage` component for the public careers page, preview page, and the live preview in the builder. This keeps the rendering logic in one place, so what the recruiter sees while editing is consistent with what candidates see after publishing. It also makes the code easier to maintain because I don't have to update multiple implementations of the same page.
+
+The decision I am less sure about is **client-side job filtering**. I chose it because the demo has a small number of jobs and it gives instant results without making a database request for every search or filter change. However, I know this approach will not scale well if a company has hundreds or thousands of jobs. In a production version, I would move the search and filtering to the server and add pagination.
 
 ---
 
@@ -147,9 +137,11 @@ Long-form content lives **only** in `career_sections`, not duplicated as
 `about_content` / `life_content` columns on `companies`. Sections are already ordered,
 typed and toggleable; a second copy would be two sources of truth for the same text.
 
-### ✍️ YOUR WORDS
+### Whether I agree
 
-_Do you agree with that call? What would you model differently with more time?_
+Yes, I agree with this decision because keeping the long-form content only in `career_sections` gives me a single source of truth. Since sections already have their own type, order, visibility, and content, storing the same information again in the `companies` table would make the data model more complicated and could lead to inconsistent data.
+
+With more time, I would make the section model more flexible by supporting reusable section templates and more customizable section types. I would still keep the actual content in `career_sections`, but I would consider adding a configuration field for sections that need different layouts or additional options.
 
 ---
 
@@ -188,11 +180,11 @@ The app never uses the **service_role** key. `company_id` on writes comes from t
 authorized company, never from the request body. There is no `DELETE` policy on
 `companies`.
 
-### ✍️ YOUR WORDS
+### How edits update the page safely
 
-_The rubric asks "how will edits safely update the page?" — answer it here in your own
-words, and be honest about what's still weak (e.g. no audit trail, no optimistic-lock
-on concurrent edits by the same user in two tabs)._
+When a recruiter saves changes, the request goes through authentication, company ownership checks, and server-side validation before the data is updated in Supabase. The company ID is taken from the authorized company rather than being trusted from the client, and Row Level Security provides another layer of protection at the database level. This makes sure that a recruiter cannot use the save request to modify another company's data.
+
+One limitation is that I currently save the sections as a whole list, so if the same page is edited in two tabs at the same time, the latest save can overwrite the earlier one. There is also no audit history showing previous versions of the page. With more time, I would add optimistic locking using a version number or `updated_at` check and possibly keep a revision history so conflicting edits could be detected or recovered.
 
 ---
 
@@ -210,10 +202,11 @@ Sections are saved as a whole-list replace rather than per-field patches: orderi
 deletion and edits are one atomic-feeling operation, and the client never has to track
 which individual rows changed.
 
-### ✍️ YOUR WORDS
+### The concurrency trade-off
 
-_Trade-off worth naming: whole-list replace is simple but is last-write-wins across
-tabs/users. Say what you'd do about it (a version column, a conditional update)._
+I chose to save the sections as a whole list because it keeps the save logic simple and makes reordering, adding, removing, and editing sections easier to handle together. The trade-off is that it currently follows a **last-write-wins** approach, so changes from one tab could overwrite changes made in another tab.
+
+If I were taking this further, I would add a `version` column or use the `updated_at` value when saving. The server could check that the version the recruiter edited is still the current version before updating the data. If it has changed, I would reject the save and ask the recruiter to reload the latest version instead of silently overwriting someone else's changes.
 
 ---
 
@@ -245,10 +238,11 @@ tabs/users. Say what you'd do about it (a version column, a conditional update).
 - `readableTextOn()` computes black-or-white text per brand colour so any palette stays legible
 - `prefers-reduced-motion` respected globally
 
-### ✍️ YOUR WORDS
+### What I actually tested
 
-_What did you actually test with — keyboard only? A screen reader? Lighthouse? Say what
-you checked and what you didn't get to._
+I mainly tested the accessibility using **keyboard navigation**, checking that the interactive elements were reachable in a logical order and that the focus state was clearly visible. I also checked that form controls had proper labels, the headings followed a logical structure, and the page worked properly at mobile widths. I verified the automated tests, build, lint, and typecheck as well.
+
+I did not get enough time to do a complete **screen-reader test** or a full **Lighthouse/accessibility audit**. Those would be part of my next testing step if I were taking the project further toward production.
 
 ---
 
@@ -258,7 +252,7 @@ Mobile-first, breakpoints at `sm` 640 / `md` 768 / `lg` 1024.
 
 | Surface       | Mobile                              | Desktop                          |
 | ------------- | ----------------------------------- | -------------------------------- |
-| Careers header| Logo + "Open roles" button only     | Adds section nav links           |
+| Careers header| Back link + logo + "Open roles"     | Adds section nav links           |
 | Hero          | Stacked, 20/24 padding              | 32 padding, constrained measure   |
 | Filters       | Stacked full-width controls         | 4-column row                     |
 | Job list      | Single column                       | Two-column grid, top-aligned     |
@@ -315,10 +309,11 @@ whole point) and restores the seeded state when it finishes.
 | 21| View source on `/careers`                | Jobs and JSON-LD present in HTML |
 | 22| Rich Results Test on the live URL        | Organization + JobPosting valid |
 
-### ✍️ YOUR WORDS
+### Test notes
 
-_Record which of these you actually ran and anything that failed the first time. Real
-test notes are far more convincing than a clean table._
+I tested the main recruiter and candidate flows rather than only checking whether the application builds. I tested login, changing the primary colour, editing the hero title, hiding and reordering sections, adding and removing sections, saving and reloading the editor, opening the preview and public careers page, searching and filtering jobs, clearing filters, and checking the empty state. I also checked the unknown company URL, unpublished pages, the 375px mobile layout, keyboard navigation, and the presence of the job data and JSON-LD in the page HTML.
+
+During development, I had a few issues that failed on the first check. Next.js 16 required the middleware file to be renamed to `proxy.ts`, and ESLint flagged the way I was using `useRef` for dirty-state tracking and an effect for the saved status. I fixed these issues and reran the checks. After the fixes, the build, lint, typecheck, and tests passed. I did not get time to run a full screen-reader or Lighthouse audit.
 
 ---
 
@@ -345,10 +340,11 @@ test notes are far more convincing than a clean table._
 | More companies, more incidents    | Blind debugging                  | Sentry + structured logs + Core Web Vitals |
 | Real teams                        | One owner is not enough          | `company_members(company_id, user_id, role)` + updated RLS |
 
-### ✍️ YOUR WORDS
+### The two problems I expect first
 
-_The rubric line is "if this went live, what challenges might appear". Pick the two you
-genuinely think would bite first and write a paragraph on each — depth beats the table._
+The first challenge I think would appear is **traffic on popular careers pages**. In the current implementation, the public page is dynamically rendered and reads company and job data from Supabase, so if a company receives a large amount of candidate traffic, repeated database requests could become a bottleneck. I would address this by adding caching or ISR/edge caching for anonymous careers pages, while making sure the cache is revalidated whenever a recruiter publishes changes.
+
+The second challenge would be **companies with a very large number of jobs**. The current client-side filtering works well for the small dataset used in this prototype, but loading hundreds or thousands of jobs into the browser would increase the initial page size and make the approach less efficient. I would move the search and filters to server-side queries, use the existing indexes for title and filter fields, and add pagination so that only the jobs needed for the current view are returned.
 
 ---
 
@@ -365,9 +361,9 @@ genuinely think would bite first and write a paragraph on each — depth beats t
 | Dynamic rendering everywhere | Always fresh, session-aware | No CDN caching yet |
 | Hand-written validation | One dependency fewer | Would use Zod as the surface grows |
 
-### ✍️ YOUR WORDS
+### The trade-off I'd reverse first
 
-_Which of these would you reverse first, and what would have to be true to reverse it?_
+The first trade-off I would reverse is **client-side job filtering**. I chose it for the prototype because the number of jobs is small and it gives an immediate response without extra database requests. I would change it when companies start having hundreds or thousands of jobs, because sending the entire job list to the browser would affect page size and performance. At that point, I would move the search and filters to server-side queries and add pagination, using the indexes already available in the database.
 
 ---
 
@@ -386,6 +382,12 @@ Roughly in the order you'd do them:
 9. Custom domains per company
 10. Draft vs. published versions, so edits don't go live until approved
 
-### ✍️ YOUR WORDS
+### My top three
 
-_Pick your own top three and say why those three._
+My top three improvements would be **Job CRUD in the builder, Supabase Storage with `next/image`, and server-side job search with pagination**.
+
+First, I would add **Job CRUD or ATS synchronization** because the recruiter currently depends on the existing job data. Giving recruiters a way to create, edit, and remove jobs would make the product more complete and useful in a real scenario.
+
+Second, I would add **Supabase Storage and `next/image`** for company logos, banners, and other images. This would give better control over uploaded assets and improve image loading and optimization instead of depending on external image URLs.
+
+Third, I would move to **server-side job search and pagination** once the number of jobs grows. The current client-side filtering is fine for the prototype, but loading a very large job list into the browser would not scale well. Server-side filtering would reduce the amount of data sent to the client and make the careers page more suitable for larger companies.

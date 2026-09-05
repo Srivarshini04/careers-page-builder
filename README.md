@@ -1,14 +1,5 @@
 # Careers Page Builder
 
-> **⚠️ SCAFFOLD — REWRITE BEFORE SUBMITTING.**
-> The assignment says the README must not be written by AI. Everything below is a
-> skeleton with the *verifiable technical facts* filled in (commands, env vars, routes,
-> schema) so you don't have to dig them out again. Every block marked **✍️ YOUR WORDS**
-> must be replaced with your own explanation in your own voice. Delete this banner when
-> you're done.
-
----
-
 A small ATS module. Recruiters sign in and build a branded careers page for their
 company; candidates visit that company's public page and browse open roles.
 
@@ -17,14 +8,13 @@ company; candidates visit that company's public page and browse open roles.
 
 ---
 
-## ✍️ YOUR WORDS — What I built and why
+## What I built and why
 
-_Two or three paragraphs, first person. Suggested things to cover:_
+I built a Careers Page Builder that helps recruiters create and customize a branded careers page for their company. From the recruiter side, they can sign in, edit the company branding, hero content and different sections, reorder or hide sections, and preview the page before saving it. On the candidate side, the public careers page shows the company information and available jobs, with search and filters for job title, location and job type.
 
-- _What problem you understood from the brief, in your own framing._
-- _The one or two product decisions you're most confident about (e.g. why the builder's
-  live preview renders the exact same component as the public page)._
-- _What you deliberately left out because of the time box._
+One of the main decisions I made was to use the same `CareersPage` component for the live editor preview, full preview and public careers page. This means the recruiter is previewing the same page that candidates will see, instead of maintaining separate versions. I also used Supabase with PostgreSQL and Row Level Security so that each company's data is kept separate and recruiters can only manage their own company's page.
+
+Since the assignment was time-boxed, I focused on the core careers page builder and candidate job browsing experience. I deliberately left out features such as a complete job application flow, advanced team management and job CRUD. These are things I would consider adding if I had more time.
 
 ---
 
@@ -69,17 +59,17 @@ _Two or three paragraphs, first person. Suggested things to cover:_
 | Tests     | Vitest (unit) + Playwright (end-to-end) |
 | Hosting   | Vercel                                  |
 
-### ✍️ YOUR WORDS — Why this stack
+---
 
-_The evaluation rubric explicitly scores "Tech Stack & Design Choices". Write why **you**
-picked these. Points you may or may not agree with — put it in your own words either way:_
+### Why this stack
 
-- _Next.js App Router: server-rendered HTML matters because a careers page has to be
-  crawlable; Server Actions removed the need for a separate API layer._
-- _Supabase: Postgres plus auth plus RLS on a free tier, so tenant isolation is enforced
-  in the database rather than only in application code._
-- _Tailwind: one consistent spacing/type scale without maintaining a CSS architecture._
-- _What you would choose differently on a real production build, and why._
+I chose Next.js with the App Router because the public careers page needs to be SEO-friendly and crawlable by search engines. Server-rendered pages help make the company and job information available in the initial HTML. The App Router also gave me a clean structure for the recruiter and candidate routes, and Server Actions allowed me to handle save operations without creating a separate API layer.
+
+I chose Supabase because it provides PostgreSQL, authentication, and Row Level Security in one platform. For this project, RLS was especially important because it allows tenant isolation to be enforced at the database level. This means a recruiter should only be able to access and modify the company data they are authorized to manage, rather than relying only on checks in the application code.
+
+I used Tailwind CSS because it allowed me to build the interface quickly while keeping spacing, typography, and responsive behavior consistent. It was a good fit for the time-boxed nature of the assignment because I could focus on the product and user experience without maintaining a large custom CSS architecture.
+
+For a real production system, I would consider adding a more formal design system, server-side search and pagination for a much larger number of jobs, and proper image storage/CDN support instead of relying on image URLs. I would also consider more advanced organization and role management if multiple recruiters needed to manage the same company.
 
 ---
 
@@ -177,7 +167,7 @@ npm install
    - `lumen@careerbuilder.dev` / `demo-recruiter-2024` → owns Lumen Health
 3. **SQL Editor** → paste and run `supabase/schema.sql`.
 4. **SQL Editor** → paste and run `supabase/seed.sql`.
-   It looks up the demo user by email and fails with a clear message if step 2 was missed.
+   It looks up both recruiters by email and fails with a clear message if either is missing.
 5. **Project Settings → API** → copy the Project URL and the `anon` `public` key.
 
 ### 4. Environment variables
@@ -193,6 +183,8 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SITE_URL`          | —        | Absolute origin for canonical/OG/JSON-LD. Inferred if unset |
 | `NEXT_PUBLIC_DEMO_EMAIL`        | —        | Prefills the login form                                   |
 | `NEXT_PUBLIC_DEMO_PASSWORD`     | —        | Prefills the login form                                   |
+| `NEXT_PUBLIC_DEMO_EMAIL_2`      | —        | Second demo account shown on the login screen             |
+| `NEXT_PUBLIC_DEMO_PASSWORD_2`   | —        | Second demo account shown on the login screen             |
 
 The Supabase **service_role** key is deliberately not used anywhere in this app.
 
@@ -239,7 +231,7 @@ The login form is prefilled with the first account; the demo panel switches betw
 | `/[slug]/edit`       | Owner only            | The builder                                     |
 | `/[slug]/preview`    | Owner only            | Full-page preview, including hidden sections    |
 | `/[slug]/careers`    | Public                | The candidate careers page                      |
-| `/robots.txt`        | Public                | Disallows `/login`, `/go`, `/*/edit`, `/*/preview` |
+| `/robots.txt`        | Public                | Disallows `/login`, `/go`, `/preview-frame`, `/*/edit`, `/*/preview` |
 | `/sitemap.xml`       | Public                | Lists every published careers page              |
 
 Seeded slugs: **`northwind-labs`** and **`lumen-health`**
@@ -260,11 +252,11 @@ companies                       career_sections              jobs
   name                            section_type  enum-ish       title
   slug          unique            title                        location
   tagline                         content                      job_type     enum-ish
-  logo_url                        display_order int            department
-  primary_color   hex check       is_visible    bool           description
-  secondary_color hex check       created_at                   is_published bool
-  hero_title                      updated_at                   created_at
-  hero_description                                             updated_at
+  logo_url                        image_url                    department
+  primary_color   hex check       display_order int            description
+  secondary_color hex check       is_visible    bool           is_published bool
+  hero_title                      created_at                   created_at
+  hero_description                updated_at                   updated_at
   banner_url            1 ─────────────► n
   culture_video_url     1 ────────────────────────────────────► n
   website_url
@@ -293,12 +285,12 @@ would just be two sources of truth to keep in sync.
 
 ### Sample data
 
-`supabase/seed.sql` creates two companies owned by the demo recruiter:
+`supabase/seed.sql` creates two companies, each owned by its own recruiter:
 
 - **Northwind Labs** (`northwind-labs`) — 5 sections, 10 jobs
 - **Lumen Health** (`lumen-health`) — 4 sections (one hidden, to demo visibility), 4 jobs
 
-Jobs span 6 locations and all 4 job types, so the filters have something real to do.
+Jobs span 5 locations and all 4 job types, so the filters have something real to do.
 The seed is idempotent — re-running resets both companies to this state.
 
 ---
@@ -318,16 +310,28 @@ No other configuration is required; the same Supabase project serves local and p
 
 ---
 
-## ✍️ YOUR WORDS — Step-by-step user guide
+## Step-by-step user guide
 
-_The brief asks for a walkthrough. Write it as numbered steps you have actually clicked
-through, e.g.:_
+1. Go to `/login` and sign in using the demo recruiter account. The form is prefilled
+   with the Northwind Labs recruiter; the panel below it switches to Lumen Health.
 
-1. _Go to `/login` and sign in with the demo account…_
-2. _You land on the builder for Northwind Labs…_
-3. _…_
+2. After signing in, you are taken to the **Northwind Labs** builder page. The left side contains the editing controls and the right side shows the live careers page preview.
 
-_Keep it short enough that a reviewer can follow it in two minutes._
+3. Use the **Branding** options to change the company colors and update the hero/banner content. The preview updates as you make changes.
+
+4. In the **Sections** area, hide a section such as **Benefits and perks**, and use the reorder controls to change the order of the visible sections.
+
+5. Use the responsive preview options to check how the careers page looks on desktop, tablet, and mobile.
+
+6. Click **Save** to persist the changes. Reload the page to confirm that the saved settings are still present.
+
+7. Open the **Preview** or public careers page and verify that the same branding and section changes are displayed.
+
+8. On the public careers page, use the **job search** box and filters such as **Location** and **Job Type** to find relevant openings.
+
+9. Click **View role** on a job card to open the full description in a modal, and check the page at mobile width to make sure the layout remains usable.
+
+10. The public careers page can then be shared using the company's careers URL.
 
 ---
 
@@ -350,16 +354,15 @@ These are real and worth stating plainly rather than hiding:
   have two.
 - **No job application flow** — explicitly out of scope per the brief.
 
-## ✍️ YOUR WORDS — Improvement plan
+## Improvement plan
 
-_What you'd do next, roughly ordered, and why that order. Some candidates:_
+My first priority would be to add **job CRUD** to the builder so recruiters can create, edit, and remove job postings without depending on seed data. This would make the builder more complete and useful as a real product.
 
-- _Job CRUD in the builder_
-- _Supabase Storage uploads + `next/image`_
-- _ISR/edge caching for anonymous traffic on `/[slug]/careers`_
-- _Server-side job search with the trigram index, plus pagination_
-- _`company_members` table for real teams and roles_
-- _Run the existing Playwright suite in CI against a throwaway Supabase project_
+Next, I would improve the media handling by using **Supabase Storage** for company logos, banners, and other uploaded assets, together with `next/image` for better image optimization. After that, I would improve the public careers pages with **ISR/edge caching**, since anonymous candidates will generate most of the traffic and the pages do not need to be regenerated for every request.
+
+For companies with a large number of jobs, I would move search and filtering to the **server side**, use the existing trigram index, and add pagination instead of loading all jobs on the client. I would then add a `company_members` table with roles and permissions so multiple recruiters can manage the same company.
+
+Finally, I would run the existing **Playwright test suite in CI** against a throwaway Supabase project. This would make the deployment process more reliable and ensure that important recruiter and candidate flows continue to work as the application evolves.
 
 ---
 
@@ -374,7 +377,7 @@ database.
 server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
 sections, save, reload and confirm persistence, preview, the public page, search, both
 filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an
-unknown slug, no horizontal overflow at 375px, and tenant separation between the two
-companies, and tenant isolation (signing in as one recruiter and being refused the other
-company's builder). It mutates demo data on purpose — proving saves reach Postgres is the
+unknown slug, no horizontal overflow at 375px, and tenant isolation — signing in as one
+recruiter and being redirected off the other company's builder. It mutates demo data on
+purpose — proving saves reach Postgres is the
 point — then restores the seeded state on the way out.
