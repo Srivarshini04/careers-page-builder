@@ -122,6 +122,18 @@ try {
   await page.waitForTimeout(400);
   check("section order survives a reload", JSON.stringify(await sectionOrder()) === JSON.stringify(after));
 
+  // ---------------------------------------------------------------- header navigation
+  check(
+    "builder links to the live public page",
+    (await page.getByRole("link", { name: /live page/i }).getAttribute("href")) ===
+      "/northwind-labs/careers",
+  );
+  check(
+    "builder links to the preview route",
+    (await page.getByRole("link", { name: /^preview$/i }).getAttribute("href")) ===
+      "/northwind-labs/preview",
+  );
+
   // ---------------------------------------------------------------- preview route
   await page.goto(`${BASE}/northwind-labs/preview`, { waitUntil: "networkidle" });
   check("preview shows the recruiter toolbar", await page.getByRole("link", { name: /back to editor/i }).isVisible());

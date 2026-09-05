@@ -6,6 +6,7 @@ import {
   AlertCircle,
   Check,
   ExternalLink,
+  Globe,
   Layers,
   LogOut,
   Monitor,
@@ -158,13 +159,51 @@ export function EditorShell({
           <div className="flex shrink-0 items-center gap-2">
             <SaveStatus state={saveState} isDirty={isDirty} />
 
-            <Link
-              href={`/${company.slug}/preview`}
-              className={cn(buttonClasses("secondary", "sm"), "hidden sm:inline-flex")}
-            >
-              <Monitor aria-hidden="true" className="h-4 w-4" />
-              Preview
-            </Link>
+            {/*
+             * Two different things, so they read as two buttons:
+             *   Preview   — this recruiter's draft, hidden sections included
+             *   Live page — what candidates actually get, only once published
+             * `company.published` is the saved value, not the draft: toggling Publish
+             * without saving must not imply the public URL already works.
+             */}
+            {/*
+             * Responsive hiding lives on a wrapper, not on the control itself:
+             * buttonClasses() already sets `inline-flex`, and Tailwind emits that after
+             * `hidden`, so `hidden sm:inline-flex` on the same element never hides.
+             * `contents` keeps the button as the direct flex child so gaps still work.
+             */}
+            <span className="hidden md:contents">
+              {company.published ? (
+                <Link
+                  href={`/${company.slug}/careers`}
+                  className={buttonClasses("ghost", "sm")}
+                >
+                  <Globe aria-hidden="true" className="h-4 w-4" />
+                  Live page
+                </Link>
+              ) : (
+                <span
+                  title="Publish your page from the Share tab to view it live"
+                  className={cn(
+                    buttonClasses("ghost", "sm"),
+                    "cursor-not-allowed opacity-40",
+                  )}
+                >
+                  <Globe aria-hidden="true" className="h-4 w-4" />
+                  Live page
+                </span>
+              )}
+            </span>
+
+            <span className="hidden sm:contents">
+              <Link
+                href={`/${company.slug}/preview`}
+                className={buttonClasses("secondary", "sm")}
+              >
+                <Monitor aria-hidden="true" className="h-4 w-4" />
+                Preview
+              </Link>
+            </span>
 
             <Button size="sm" onClick={save} disabled={pending || !isDirty}>
               {pending ? (
