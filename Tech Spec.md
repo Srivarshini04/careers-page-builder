@@ -114,8 +114,8 @@ _Explain the one architectural call you'd defend hardest, and one you're unsure 
 
 **`career_sections`** — ordered content blocks.
 `id`, `company_id → companies` (cascade), `section_type`
-(`about | life | values | benefits | custom`), `title`, `content`, `display_order`,
-`is_visible`, timestamps.
+(`about | life | values | benefits | custom`), `title`, `content`, `image_url`,
+`display_order`, `is_visible`, timestamps.
 
 **`jobs`** — open roles.
 `id`, `company_id → companies` (cascade), `title`, `location`, `job_type`
@@ -267,7 +267,7 @@ scroll from long unbroken strings.
 
 ## 13. Testing
 
-**Automated (Vitest, 36 tests):**
+**Automated (Vitest, 38 tests):**
 
 - `tests/jobs.test.ts` — search/filter/facets, including that search matches title only
 - `tests/content.test.ts` — rich-text parsing, plain-text flattening, slugs,

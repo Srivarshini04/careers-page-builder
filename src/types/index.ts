@@ -45,6 +45,7 @@ export interface CareerSection {
   section_type: SectionType;
   title: string;
   content: string;
+  image_url: string | null;
   display_order: number;
   is_visible: boolean;
   created_at: string;
@@ -94,6 +95,7 @@ export interface SectionDraft {
   section_type: SectionType;
   title: string;
   content: string;
+  image_url: string | null;
   display_order: number;
   is_visible: boolean;
   /** Client-only marker for sections created in the browser and not yet persisted. */

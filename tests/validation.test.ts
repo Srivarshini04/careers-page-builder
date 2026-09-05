@@ -86,4 +86,20 @@ describe("validateSections", () => {
   it("treats a non-array payload as no sections", () => {
     expect(validateSections(null).value).toEqual([]);
   });
+
+  it("accepts an http(s) section image and normalises a blank one to null", () => {
+    const withImage = validateSections([
+      section({ image_url: "https://example.com/team.jpg" }),
+    ]);
+    expect(withImage.ok).toBe(true);
+    expect(withImage.value[0].image_url).toBe("https://example.com/team.jpg");
+
+    expect(validateSections([section({ image_url: "   " })]).value[0].image_url).toBeNull();
+  });
+
+  it("rejects an unsafe section image URL", () => {
+    const result = validateSections([section({ image_url: "javascript:alert(1)" })]);
+    expect(result.ok).toBe(false);
+    expect(result.errors[0]).toMatch(/image/i);
+  });
 });

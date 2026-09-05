@@ -46,6 +46,8 @@ create table if not exists public.career_sections (
                             check (section_type in ('about', 'life', 'values', 'benefits', 'custom')),
   title         text        not null check (char_length(title) between 1 and 60),
   content       text        not null default '',
+  -- Optional supporting image, rendered beside the heading in editorial sections.
+  image_url     text,
   display_order integer     not null default 0,
   is_visible    boolean     not null default true,
   created_at    timestamptz not null default now(),

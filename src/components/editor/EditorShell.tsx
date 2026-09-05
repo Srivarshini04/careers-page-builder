@@ -397,6 +397,7 @@ function toSectionDraft(section: CareerSection): SectionDraft {
     section_type: section.section_type,
     title: section.title,
     content: section.content,
+    image_url: section.image_url,
     display_order: section.display_order,
     is_visible: section.is_visible,
   };
@@ -423,6 +424,7 @@ function persisted(section: SectionDraft): SectionDraft {
     section_type: section.section_type,
     title: section.title,
     content: section.content,
+    image_url: section.image_url,
     display_order: section.display_order,
     is_visible: section.is_visible,
   };

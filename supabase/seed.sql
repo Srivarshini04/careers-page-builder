@@ -160,6 +160,22 @@ begin
    3, false);
 
   -- ---------------------------------------------------------------------------
+  -- Supporting images for the editorial sections
+  -- Set separately from the inserts above so the column list stays readable.
+  -- ---------------------------------------------------------------------------
+  update public.career_sections
+     set image_url = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80'
+   where company_id = northwind_id and section_type = 'about';
+
+  update public.career_sections
+     set image_url = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1200&q=80'
+   where company_id = northwind_id and section_type = 'custom';
+
+  update public.career_sections
+     set image_url = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80'
+   where company_id = lumen_id and section_type = 'about';
+
+  -- ---------------------------------------------------------------------------
   -- Northwind Labs — 10 open roles
   -- ---------------------------------------------------------------------------
   insert into public.jobs (company_id, title, location, job_type, department, description) values

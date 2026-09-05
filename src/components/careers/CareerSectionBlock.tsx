@@ -62,7 +62,11 @@ export function CareerSectionBlock({
               </h2>
             </div>
             <div className={cn("mt-8", isGrid && "mt-10")}>
-              <RichText content={section.content} listAs={isGrid ? "cards" : "bullets"} />
+              <RichText
+                content={section.content}
+                listAs={isGrid ? "cards" : "bullets"}
+                cardStyle={section.section_type === "benefits" ? "perk" : "principle"}
+              />
             </div>
             {media}
           </div>
@@ -76,6 +80,19 @@ export function CareerSectionBlock({
               >
                 {section.title}
               </h2>
+
+              {/* Fills the gap a short heading leaves in the narrow column. */}
+              {section.image_url ? (
+                <div className="mt-6 overflow-hidden rounded-xl border border-ink-200 bg-ink-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={section.image_url}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[4/3] w-full object-cover"
+                  />
+                </div>
+              ) : null}
             </div>
             <div>
               <RichText content={section.content} listAs="bullets" />

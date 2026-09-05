@@ -34,6 +34,13 @@ const TYPE_HINTS: Record<SectionType, string> = {
   custom: "Anything else you want candidates to know.",
 };
 
+/**
+ * Only the editorial (two-column) layouts have somewhere sensible to put an image, so
+ * the field is offered only there. A control that silently does nothing is worse than
+ * no control.
+ */
+const SUPPORTS_IMAGE = new Set<SectionType>(["about", "custom"]);
+
 const STARTER_CONTENT: Record<SectionType, string> = {
   about: "Tell candidates what your company does and why it matters.",
   life: "Describe a normal week on the team — how you work, ship and support each other.",
@@ -92,6 +99,7 @@ export function SectionManager({
       section_type: nextType,
       title: TYPE_LABELS[nextType],
       content: STARTER_CONTENT[nextType],
+      image_url: null,
       display_order: sections.length,
       is_visible: true,
       isNew: true,
@@ -250,6 +258,36 @@ export function SectionManager({
                           }
                         />
                       </Field>
+
+                      {SUPPORTS_IMAGE.has(section.section_type) ? (
+                        <Field
+                          label="Supporting image URL"
+                          htmlFor={`image-${section.id}`}
+                          hint="Optional. Sits beside the heading and fills the space a short heading leaves behind."
+                        >
+                          <Input
+                            id={`image-${section.id}`}
+                            type="url"
+                            inputMode="url"
+                            value={section.image_url ?? ""}
+                            placeholder="https://…/team.jpg"
+                            onChange={(event) =>
+                              update(section.id, { image_url: event.target.value })
+                            }
+                          />
+                        </Field>
+                      ) : null}
+
+                      {section.image_url && SUPPORTS_IMAGE.has(section.section_type) ? (
+                        <div className="overflow-hidden rounded-lg border border-ink-200 bg-ink-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={section.image_url}
+                            alt="Section image preview"
+                            className="h-24 w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
 
                       <div className="flex justify-end">
                         <Button

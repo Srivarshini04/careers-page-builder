@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+
 import { parseRichText } from "@/lib/utils/text";
 import { cn } from "@/lib/utils/cn";
 
@@ -22,10 +24,17 @@ export function RichText({
   content,
   className,
   listAs = "cards",
+  cardStyle = "principle",
 }: {
   content: string;
   className?: string;
   listAs?: "cards" | "bullets";
+  /**
+   * Values and benefits are both card grids, so they need different treatments or the
+   * page reads as the same section twice: principles are numbered statements, perks are
+   * a checklist of things you get.
+   */
+  cardStyle?: "principle" | "perk";
 }) {
   const blocks = parseRichText(content);
   if (!blocks.length) return null;
@@ -67,26 +76,53 @@ export function RichText({
         }
 
         return (
-          <ul key={index} className={cn("grid gap-4 sm:grid-cols-2", cardColumns(block.items.length))}>
-            {block.items.map((item, itemIndex) => (
-              <li
-                key={itemIndex}
-                className="rounded-xl border border-ink-200 bg-white p-5 transition-shadow hover:shadow-sm"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mb-3 block h-1 w-8 rounded-full bg-(--brand-primary)"
-                />
-                <h3 className="text-base font-semibold text-ink-900">
-                  {item.heading}
-                </h3>
-                {item.body ? (
-                  <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
-                    {item.body}
-                  </p>
-                ) : null}
-              </li>
-            ))}
+          <ul
+            key={index}
+            className={cn("grid gap-4 sm:grid-cols-2", cardColumns(block.items.length))}
+          >
+            {block.items.map((item, itemIndex) =>
+              cardStyle === "perk" ? (
+                <li
+                  key={itemIndex}
+                  className="flex gap-3 rounded-xl bg-(--brand-primary-soft) p-5"
+                >
+                  <Check
+                    aria-hidden="true"
+                    className="mt-0.5 h-5 w-5 shrink-0 text-(--brand-primary)"
+                  />
+                  <div>
+                    <h3 className="text-base font-semibold text-ink-900">
+                      {item.heading}
+                    </h3>
+                    {item.body ? (
+                      <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
+                        {item.body}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              ) : (
+                <li
+                  key={itemIndex}
+                  className="rounded-xl border border-ink-200 bg-white p-5 transition-shadow hover:shadow-sm"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mb-3 block text-sm font-bold tabular-nums text-(--brand-primary)"
+                  >
+                    {String(itemIndex + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="text-base font-semibold text-ink-900">
+                    {item.heading}
+                  </h3>
+                  {item.body ? (
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
+                      {item.body}
+                    </p>
+                  ) : null}
+                </li>
+              ),
+            )}
           </ul>
         );
       })}

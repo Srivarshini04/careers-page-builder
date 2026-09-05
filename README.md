@@ -36,7 +36,8 @@ _Two or three paragraphs, first person. Suggested things to cover:_
 - Branding: company name, tagline, logo, HQ, website, primary/secondary colours (with a
   live WCAG contrast readout), banner image, culture video
 - Hero: title and description, which also feed the page's `<title>`/meta description
-- Sections: add, edit, rename, change type, show/hide, reorder (Up/Down), remove
+- Sections: add, edit, rename, change type, show/hide, reorder (Up/Down), remove, plus an
+  optional supporting image on the editorial section types
 - Live preview that re-renders on every keystroke, with Desktop / Tablet / Mobile device
   modes rendered in a real iframe viewport, plus a full-screen preview route
 - Explicit Save with idle / saving / saved / error states, `⌘S` shortcut, and an
@@ -148,7 +149,7 @@ supabase/
   seed.sql                        2 demo companies, 9 sections, 14 jobs
   migrations/                     Policy changes applied after the initial schema
 tests/
-  *.test.ts                       Vitest unit tests (36)
+  *.test.ts                       Vitest unit tests (38)
   e2e/                            Playwright end-to-end suite (61 checks)
 ```
 
@@ -199,7 +200,7 @@ The Supabase **service_role** key is deliberately not used anywhere in this app.
 ```bash
 npm run dev          # http://localhost:3000
 npm run build        # production build
-npm test             # 36 unit tests (no server or database needed)
+npm test             # 38 unit tests (no server or database needed)
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 
@@ -363,7 +364,7 @@ _What you'd do next, roughly ordered, and why that order. Some candidates:_
 
 ## Tests
 
-**Unit tests — `npm test`.** 36 tests covering job search/filter logic, rich-text
+**Unit tests — `npm test`.** 38 tests covering job search/filter logic, rich-text
 parsing, video URL normalisation, brand-colour contrast, and server-side payload
 validation. Pure functions only, so they run in under a second with no server or
 database.

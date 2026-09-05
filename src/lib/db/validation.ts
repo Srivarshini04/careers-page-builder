@@ -101,6 +101,11 @@ export function validateSections(
     const row = (raw ?? {}) as Partial<SectionDraft>;
     const title = trimOrNull(row.title, MAX.sectionTitle);
     if (!title) errors.push(`Section ${index + 1} needs a title.`);
+
+    const imageUrl = trimOrNull(row.image_url, MAX.url);
+    if (imageUrl && !isSafeUrl(imageUrl)) {
+      errors.push(`Section ${index + 1} image must be a valid http(s) URL.`);
+    }
     if (!row.id || !UUID.test(String(row.id))) {
       errors.push(`Section ${index + 1} has an invalid id.`);
     }
@@ -114,6 +119,7 @@ export function validateSections(
       section_type: sectionType,
       title: title ?? "",
       content: typeof row.content === "string" ? row.content.slice(0, MAX.sectionContent) : "",
+      image_url: imageUrl,
       // Order is re-derived from array position: the client can't send a broken sequence.
       display_order: index,
       is_visible: row.is_visible !== false,

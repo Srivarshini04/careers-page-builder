@@ -12,7 +12,7 @@ const COMPANY_COLUMNS =
   "id, owner_id, name, slug, tagline, logo_url, primary_color, secondary_color, hero_title, hero_description, banner_url, culture_video_url, website_url, location, published, created_at, updated_at";
 
 const SECTION_COLUMNS =
-  "id, company_id, section_type, title, content, display_order, is_visible, created_at, updated_at";
+  "id, company_id, section_type, title, content, image_url, display_order, is_visible, created_at, updated_at";
 
 const JOB_COLUMNS =
   "id, company_id, title, location, job_type, department, description, is_published, created_at, updated_at";
