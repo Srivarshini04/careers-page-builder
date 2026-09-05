@@ -221,8 +221,8 @@ try {
 
   // ---------------------------------------------------------------- header navigation
   check(
-    "builder links to the live public page",
-    (await page.getByRole("link", { name: /live page/i }).getAttribute("href")) ===
+    "builder links to the public careers page",
+    (await page.getByRole("link", { name: /^careers page$/i }).getAttribute("href")) ===
       "/northwind-labs/careers",
   );
   check(
@@ -273,9 +273,18 @@ try {
   check("clear filters restores the full list", /showing 10 of 10/i.test(await resultCount()));
   check("clear filters disables when there is nothing to clear", await page.getByRole("button", { name: /^clear filters$/i }).isDisabled());
 
-  await page.getByRole("button", { name: /read full description for Frontend Engineer/i }).click();
-  await page.waitForTimeout(200);
-  check("job description expands in place", await page.getByRole("button", { name: /show less for Frontend Engineer/i }).isVisible());
+  // Role detail opens in a native <dialog>: modal semantics, Escape to close.
+  await page.getByRole("button", { name: /view role details for Frontend Engineer/i }).click();
+  await page.waitForTimeout(300);
+  const roleDialog = page.getByRole("dialog");
+  check("role detail opens in a modal", await roleDialog.isVisible());
+  check(
+    "modal shows the full description, not the clamped snippet",
+    await roleDialog.getByText(/own the component library/i).isVisible(),
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+  check("Escape closes the role modal", (await page.getByRole("dialog").count()) === 0 || !(await page.getByRole("dialog").isVisible()));
 
   // ---------------------------------------------------------------- accessibility
   await page.keyboard.press("Tab");

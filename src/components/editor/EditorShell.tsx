@@ -161,8 +161,8 @@ export function EditorShell({
 
             {/*
              * Two different things, so they read as two buttons:
-             *   Preview   — this recruiter's draft, hidden sections included
-             *   Live page — what candidates actually get, only once published
+             *   Preview       — this recruiter's draft, hidden sections included
+             *   Careers page  — what candidates actually get, only once published
              * `company.published` is the saved value, not the draft: toggling Publish
              * without saving must not imply the public URL already works.
              */}
@@ -179,18 +179,18 @@ export function EditorShell({
                   className={buttonClasses("ghost", "sm")}
                 >
                   <Globe aria-hidden="true" className="h-4 w-4" />
-                  Live page
+                  Careers page
                 </Link>
               ) : (
                 <span
-                  title="Publish your page from the Publish &amp; share group to view it live"
+                  title="Publish your page from the Publish &amp; share group to open the careers page"
                   className={cn(
                     buttonClasses("ghost", "sm"),
                     "cursor-not-allowed opacity-40",
                   )}
                 >
                   <Globe aria-hidden="true" className="h-4 w-4" />
-                  Live page
+                  Careers page
                 </span>
               )}
             </span>

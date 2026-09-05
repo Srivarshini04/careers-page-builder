@@ -232,7 +232,8 @@ tabs/users. Say what you'd do about it (a version column, a conditional update).
 - Semantic landmarks: `header`, `main`, `section` (each `aria-labelledby`), `nav`, `footer`
 - One `h1` per page; section headings are `h2`, cards `h3`
 - Every control has a real `<label>` — placeholders are never used as labels
-- Disclosure buttons use `aria-expanded` + `aria-controls`; tabs use `role="tab"`/`aria-selected`;
+- Role detail uses a native `<dialog>`, so focus trapping, Escape and inert background
+  come from the platform; disclosure buttons use `aria-expanded` + `aria-controls`;
   toggle buttons use `aria-pressed`
 - Result counts and save status are `aria-live="polite"`
 - A single visible focus style, tinted with the company's own brand colour
@@ -275,7 +276,7 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
-**End-to-end (Playwright, 61 checks — `npm run test:e2e`):**
+**End-to-end (Playwright, 63 checks — `npm run test:e2e`):**
 
 Drives a real browser against a real dev server and a real Supabase project, covering
 the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,

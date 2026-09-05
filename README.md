@@ -50,7 +50,8 @@ _Two or three paragraphs, first person. Suggested things to cover:_
 
 - Fully server-rendered branded careers page, themed from the company's saved colours
 - Search by job title, filter by location and job type, clear filters, live result count
-- Expandable job cards, polished empty states, mobile-first layout
+- Job cards open the full role in a modal built on the native `<dialog>` element
+- Polished empty states, mobile-first layout
 - SEO: dynamic title/description, canonical URL, Open Graph + Twitter tags,
   `Organization` and `JobPosting` JSON-LD, `robots.txt`, `sitemap.xml`
 
@@ -132,7 +133,7 @@ src/
     home/                         CompanyDirectory (filterable), PagePreview
     careers/                      CareersPage, Header, Hero, SectionBlock, Footer,
                                   CultureVideo, OwnerBar, StructuredData (JSON-LD)
-    jobs/                         JobsExplorer, JobFilters, JobCard
+    jobs/                         JobsExplorer, JobFilters, JobCard, JobDialog
     editor/                       EditorShell, PanelGroup, PreviewSurface,
                                   BrandingPanel, HeroPanel, SectionManager, SharePanel
     ui/                           Button, Field/Input/Textarea/Select, ColorPicker,
@@ -150,7 +151,7 @@ supabase/
   migrations/                     Policy changes applied after the initial schema
 tests/
   *.test.ts                       Vitest unit tests (38)
-  e2e/                            Playwright end-to-end suite (61 checks)
+  e2e/                            Playwright end-to-end suite (63 checks)
 ```
 
 ---
@@ -207,7 +208,7 @@ npm run lint         # eslint
 # Optional — end-to-end run against a live dev server + Supabase.
 # Needs `npm run dev` running and `npx playwright install chromium`
 # (or PW_CHANNEL=chrome to reuse a system Chrome install).
-npm run test:e2e     # 61 browser checks; restores demo data when it finishes
+npm run test:e2e     # 63 browser checks; restores demo data when it finishes
 npm run reset:demo   # restore the demo companies to their seeded state
 ```
 
@@ -369,7 +370,7 @@ parsing, video URL normalisation, brand-colour contrast, and server-side payload
 validation. Pure functions only, so they run in under a second with no server or
 database.
 
-**End-to-end — `npm run test:e2e`.** 61 checks driving a real browser against a real dev
+**End-to-end — `npm run test:e2e`.** 63 checks driving a real browser against a real dev
 server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
 sections, save, reload and confirm persistence, preview, the public page, search, both
 filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an

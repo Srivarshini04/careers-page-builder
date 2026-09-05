@@ -1,19 +1,21 @@
 "use client";
 
-import { useId, useState } from "react";
-import { Briefcase, ChevronDown, Clock, MapPin } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Briefcase, Clock, MapPin } from "lucide-react";
 
-import { cn } from "@/lib/utils/cn";
 import type { Job } from "@/types";
 
+import { JobDialog } from "./JobDialog";
+
 /**
- * Cards expand in place rather than linking to a detail route: the assignment scopes
- * out the application flow, and keeping candidates in the filtered list is fewer taps
- * on mobile. The full description is always in the DOM for crawlers.
+ * A role in the list. The card carries enough to decide whether to look closer — title,
+ * team, location, type and an opening line — and the full description opens in a modal.
+ *
+ * The visible snippet stays in the markup (and the whole description ships in the page's
+ * JobPosting JSON-LD), so moving the detail into a dialog costs nothing for crawlers.
  */
 export function JobCard({ job }: { job: Job }) {
-  const [expanded, setExpanded] = useState(false);
-  const detailsId = useId();
+  const [open, setOpen] = useState(false);
 
   return (
     <article className="rounded-xl border border-ink-200 bg-white p-5 transition-shadow hover:shadow-md sm:p-6">
@@ -46,33 +48,23 @@ export function JobCard({ job }: { job: Job }) {
       </ul>
 
       {job.description ? (
-        <>
-          <div
-            id={detailsId}
-            className={cn(
-              "mt-4 text-sm leading-relaxed whitespace-pre-line text-ink-600",
-              !expanded && "line-clamp-2",
-            )}
-          >
-            {job.description}
-          </div>
-          <button
-            type="button"
-            onClick={() => setExpanded((value) => !value)}
-            aria-expanded={expanded}
-            aria-controls={detailsId}
-            className="mt-3 inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-(--brand-primary) hover:underline"
-          >
-            {expanded ? "Show less" : "Read full description"}
-            {/* Keeps the label unique when several cards are read out in a row. */}
-            <span className="sr-only"> for {job.title}</span>
-            <ChevronDown
-              aria-hidden="true"
-              className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")}
-            />
-          </button>
-        </>
+        <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-ink-600">
+          {job.description}
+        </p>
       ) : null}
+
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-4 inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-(--brand-primary) hover:underline"
+      >
+        View role
+        {/* Keeps the label unique when several cards are read out in a row. */}
+        <span className="sr-only"> details for {job.title}</span>
+        <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+      </button>
+
+      <JobDialog job={job} open={open} onClose={() => setOpen(false)} />
     </article>
   );
 }
