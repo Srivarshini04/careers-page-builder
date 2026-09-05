@@ -259,16 +259,16 @@ export function EditorShell({
             </div>
 
             {/*
-             * Collapsible groups rather than tabs: branding and content are usually
-             * edited together, and a recruiter can see the whole shape of the page
-             * without hunting through panels.
+             * Collapsible groups rather than tabs, and all closed on arrival: the panel
+             * opens as a short table of contents, so the whole shape of the page is
+             * visible at a glance and the recruiter chooses what to work on. Any number
+             * can be open at once, since branding and content are often edited together.
              */}
             <div className="flex-1 overflow-y-auto lg:min-h-0">
               <PanelGroup
                 icon={Palette}
                 title="Branding"
                 description="Colours, logo, banner and video"
-                defaultOpen
               >
                 <BrandingPanel draft={draft} onChange={updateDraft} />
               </PanelGroup>
@@ -277,7 +277,6 @@ export function EditorShell({
                 icon={Type}
                 title="Content"
                 description="Hero headline and description"
-                defaultOpen
               >
                 <HeroPanel draft={draft} onChange={updateDraft} />
               </PanelGroup>

@@ -105,16 +105,18 @@ try {
   await page.waitForSelector("text=Live preview");
   check("save is disabled while there is nothing to save", await page.getByRole("button", { name: /save changes/i }).isDisabled());
   check("structure panel is present", await page.getByRole("heading", { name: /page structure/i }).isVisible());
-  check(
-    "Branding and Content groups start expanded",
-    (await page.getByRole("button", { name: /^Branding/ }).getAttribute("aria-expanded")) === "true" &&
-      (await page.getByRole("button", { name: /^Content/ }).getAttribute("aria-expanded")) === "true",
+  const groupStates = await Promise.all(
+    ["Branding", "Content", "Sections", "Publish"].map((name) =>
+      page.getByRole("button", { name: new RegExp(`^${name}`) }).getAttribute("aria-expanded"),
+    ),
   );
   check(
-    "Sections group starts collapsed",
-    (await page.getByRole("button", { name: /^Sections/ }).getAttribute("aria-expanded")) === "false",
+    "every structure group starts collapsed",
+    groupStates.every((state) => state === "false"),
+    groupStates.join(", "),
   );
 
+  await openGroup("Branding");
   await page.locator("input.font-mono.uppercase").first().fill("#e11d48");
   await page.waitForTimeout(600);
   const heroCta = preview().locator('a[href="#open-roles"]').nth(1);
@@ -123,7 +125,7 @@ try {
   check("unsaved-changes indicator appears", await page.getByText(/unsaved changes/i).isVisible());
 
   // ---------------------------------------------------------------- builder: hero
-  // "Content" is open by default; the fill would fail loudly if it were not.
+  await openGroup("Content");
   await page.locator("#hero-title").fill("Ship infrastructure people actually enjoy.");
   await page.waitForTimeout(400);
   check(
@@ -207,6 +209,8 @@ try {
     "hero title survives a reload",
     await preview().locator("h1").first().textContent().then((t) => /ship infrastructure/i.test(t ?? "")),
   );
+  // Groups collapse again on reload, so reopen before reading a control inside one.
+  await openGroup("Branding");
   check(
     "brand colour survives a reload",
     (await page.locator("input.font-mono.uppercase").first().inputValue()).toLowerCase() === "#e11d48",
