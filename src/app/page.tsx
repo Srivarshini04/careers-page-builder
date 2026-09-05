@@ -60,7 +60,10 @@ export default async function HomePage() {
         "id, name, slug, tagline, primary_color, secondary_color, banner_url, logo_url, hero_title, owner_id",
       )
       .eq("published", true)
+      // Tiebreak on slug: `now()` is transaction time, so companies seeded together
+      // share a created_at and the order would otherwise be whatever the planner returns.
       .order("created_at", { ascending: true })
+      .order("slug", { ascending: true })
       .limit(12)
       .returns<(DirectoryCompany & { owner_id: string | null })[]>(),
     // Titles for the card thumbnails. RLS already limits this to published rows.

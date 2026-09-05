@@ -38,7 +38,7 @@ begin
     owner_id, name, slug, tagline, logo_url,
     primary_color, secondary_color,
     hero_title, hero_description,
-    banner_url, culture_video_url, website_url, location, published
+    banner_url, culture_video_url, website_url, location, published, created_at
   ) values (
     demo_user_id,
     'Northwind Labs',
@@ -53,7 +53,10 @@ begin
     'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
     'https://example.com',
     'Bengaluru, India',
-    true
+    true,
+    -- Distinct instants so the directory has a stable order; now() alone is the
+    -- transaction timestamp and would make both companies identical.
+    now()
   )
   on conflict (slug) do update set
     owner_id          = excluded.owner_id,
@@ -68,7 +71,8 @@ begin
     culture_video_url = excluded.culture_video_url,
     website_url       = excluded.website_url,
     location          = excluded.location,
-    published         = excluded.published
+    published         = excluded.published,
+    created_at        = excluded.created_at
   returning id into northwind_id;
 
   -- ---------------------------------------------------------------------------
@@ -78,7 +82,7 @@ begin
     owner_id, name, slug, tagline, logo_url,
     primary_color, secondary_color,
     hero_title, hero_description,
-    banner_url, culture_video_url, website_url, location, published
+    banner_url, culture_video_url, website_url, location, published, created_at
   ) values (
     lumen_user_id,
     'Lumen Health',
@@ -93,7 +97,8 @@ begin
     null,
     'https://example.com',
     'Hyderabad, India',
-    true
+    true,
+    now() + interval '1 second'
   )
   on conflict (slug) do update set
     owner_id          = excluded.owner_id,
@@ -106,7 +111,8 @@ begin
     banner_url        = excluded.banner_url,
     website_url       = excluded.website_url,
     location          = excluded.location,
-    published         = excluded.published
+    published         = excluded.published,
+    created_at        = excluded.created_at
   returning id into lumen_id;
 
   -- ---------------------------------------------------------------------------
