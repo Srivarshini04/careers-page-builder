@@ -279,12 +279,20 @@ try {
   const roleDialog = page.getByRole("dialog");
   check("role detail opens in a modal", await roleDialog.isVisible());
   check(
+    "the page behind the modal is scroll-locked",
+    await page.evaluate(() => getComputedStyle(document.body).overflowY === "hidden"),
+  );
+  check(
     "modal shows the full description, not the clamped snippet",
     await roleDialog.getByText(/own the component library/i).isVisible(),
   );
   await page.keyboard.press("Escape");
   await page.waitForTimeout(300);
   check("Escape closes the role modal", (await page.getByRole("dialog").count()) === 0 || !(await page.getByRole("dialog").isVisible()));
+  check(
+    "the scroll lock is released on close",
+    await page.evaluate(() => document.body.getAttribute("style") === ""),
+  );
 
   // ---------------------------------------------------------------- accessibility
   await page.keyboard.press("Tab");

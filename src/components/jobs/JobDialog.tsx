@@ -37,6 +37,23 @@ export function JobDialog({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  /*
+   * <dialog> does not stop the page behind it scrolling, so a wheel gesture over the
+   * modal scrolled the careers page instead. Lock the owning document while it is open.
+   * `ownerDocument` matters: inside the builder the dialog lives in the preview iframe,
+   * and the module-level `document` would be the parent page.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const body = dialogRef.current?.ownerDocument?.body;
+    if (!body) return;
+
+    body.style.setProperty("overflow", "hidden");
+    return () => {
+      body.style.removeProperty("overflow");
+    };
+  }, [open]);
+
   // Escape and the close button both fire the native `close` event; keep React in sync.
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -54,7 +71,7 @@ export function JobDialog({
       onClick={(event) => {
         if (event.target === dialogRef.current) dialogRef.current?.close();
       }}
-      className="m-auto w-[calc(100vw-2rem)] max-w-2xl rounded-2xl p-0 backdrop:bg-ink-900/60 backdrop:backdrop-blur-sm"
+      className="m-auto w-[calc(100vw-2rem)] max-w-2xl rounded-2xl p-0 backdrop:bg-ink-900/60 backdrop:backdrop-blur-sm [&_*]:[scrollbar-color:var(--color-ink-300)_transparent] [&_*]:[scrollbar-width:thin]"
     >
       <div className="flex max-h-[85vh] flex-col">
         <div className="flex items-start justify-between gap-4 border-b border-ink-200 p-5 sm:p-6">
@@ -93,7 +110,7 @@ export function JobDialog({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6">
           <p className="text-[15px] leading-relaxed whitespace-pre-line text-ink-700">
             {job.description || `We'll share more about this role when you get in touch.`}
           </p>

@@ -161,8 +161,10 @@ Supabase Auth, email + password, cookie-based sessions via `@supabase/ssr`.
   anonymous visitors away from `/[slug]/edit` and `/[slug]/preview` (preserving `?next=`).
 - Server Components and Server Actions build a Supabase client from the request cookies,
   so Postgres sees the real `auth.uid()`.
-- `/go` resolves the signed-in recruiter's company and forwards to its builder, keeping
-  slugs out of the login form.
+- Sign-in resolves the recruiter's company from the session it just obtained and goes
+  straight to that builder — bouncing through `/go` cost an extra server round trip on
+  the slowest moment in the app. `/go` remains as the fallback and as the target of
+  "Go to my workspace".
 
 ## 8. Authorization and data isolation
 
@@ -276,7 +278,7 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
-**End-to-end (Playwright, 63 checks — `npm run test:e2e`):**
+**End-to-end (Playwright, 65 checks — `npm run test:e2e`):**
 
 Drives a real browser against a real dev server and a real Supabase project, covering
 the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,

@@ -23,7 +23,7 @@ export function LoginForm({ next }: { next?: string }) {
     setError(null);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -38,9 +38,29 @@ export function LoginForm({ next }: { next?: string }) {
       return;
     }
 
-    // `/go` resolves which company this recruiter owns and forwards to its builder.
-    router.replace(next && next.startsWith("/") ? next : "/go");
-    router.refresh();
+    if (next && next.startsWith("/")) {
+      router.replace(next);
+      return;
+    }
+
+    /*
+     * Resolve the recruiter's company here rather than bouncing through `/go`, which
+     * cost a whole extra server round trip on the slowest moment in the app. This is a
+     * single indexed lookup on the session we already hold; `/go` stays as the fallback
+     * and is still what "Go to my workspace" links to.
+     */
+    const ownerId = data.user?.id;
+    const { data: company } = ownerId
+      ? await supabase
+          .from("companies")
+          .select("slug")
+          .eq("owner_id", ownerId)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle<{ slug: string }>()
+      : { data: null };
+
+    router.replace(company ? `/${company.slug}/edit` : "/go");
   }
 
   return (

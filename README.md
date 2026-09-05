@@ -120,7 +120,7 @@ src/
   app/
     page.tsx                      Landing page: hero, feature cards, company directory
     login/                        Recruiter sign in
-    go/                           Post-login hop → the recruiter's company builder
+    go/                           Resolves a recruiter's company (fallback + workspace link)
     actions/auth.ts               Sign-out server action
     [companySlug]/
       careers/                    PUBLIC candidate page (no loading.tsx — see note in page.tsx)
@@ -151,7 +151,7 @@ supabase/
   migrations/                     Policy changes applied after the initial schema
 tests/
   *.test.ts                       Vitest unit tests (38)
-  e2e/                            Playwright end-to-end suite (63 checks)
+  e2e/                            Playwright end-to-end suite (65 checks)
 ```
 
 ---
@@ -208,7 +208,7 @@ npm run lint         # eslint
 # Optional — end-to-end run against a live dev server + Supabase.
 # Needs `npm run dev` running and `npx playwright install chromium`
 # (or PW_CHANNEL=chrome to reuse a system Chrome install).
-npm run test:e2e     # 63 browser checks; restores demo data when it finishes
+npm run test:e2e     # 65 browser checks; restores demo data when it finishes
 npm run reset:demo   # restore the demo companies to their seeded state
 ```
 
@@ -370,7 +370,7 @@ parsing, video URL normalisation, brand-colour contrast, and server-side payload
 validation. Pure functions only, so they run in under a second with no server or
 database.
 
-**End-to-end — `npm run test:e2e`.** 63 checks driving a real browser against a real dev
+**End-to-end — `npm run test:e2e`.** 65 checks driving a real browser against a real dev
 server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
 sections, save, reload and confirm persistence, preview, the public page, search, both
 filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an
