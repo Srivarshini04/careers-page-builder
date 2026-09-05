@@ -170,10 +170,16 @@ create policy companies_update on public.companies
 -- No delete policy: companies can only be removed by an admin with the service role.
 
 -- career_sections -------------------------------------------------------------
+-- A hidden section is a private draft. The app already filters on is_visible, but the
+-- anon key is public, so the policy has to enforce it too — otherwise anyone could read
+-- unreleased content straight from the REST API.
 drop policy if exists career_sections_select on public.career_sections;
 create policy career_sections_select on public.career_sections
   for select
-  using (public.is_company_readable(company_id));
+  using (
+    public.is_company_readable(company_id)
+    and (is_visible or public.is_company_owner(company_id))
+  );
 
 drop policy if exists career_sections_write on public.career_sections;
 create policy career_sections_write on public.career_sections

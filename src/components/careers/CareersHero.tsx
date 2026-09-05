@@ -22,7 +22,12 @@ export function CareersHero({
   return (
     <section
       id="top"
-      aria-labelledby="hero-title"
+      /*
+       * Scoped id: the builder renders this hero *inside* the same document as its own
+       * "Hero title" form field, so a bare `hero-title` id would be duplicated and the
+       * <label for> association would become ambiguous.
+       */
+      aria-labelledby="careers-hero-heading"
       className="relative isolate overflow-hidden"
       style={{ background: secondary }}
     >
@@ -67,7 +72,7 @@ export function CareersHero({
           </p>
 
           <h1
-            id="hero-title"
+            id="careers-hero-heading"
             className="text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl"
             style={{ color: "var(--brand-on-secondary)" }}
           >

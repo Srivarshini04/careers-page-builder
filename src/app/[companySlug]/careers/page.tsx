@@ -23,6 +23,12 @@ interface PageProps {
  * Rendered per request. The Supabase client reads auth cookies (so an owner can see
  * their own unpublished page), which makes the route dynamic. Adding ISR/edge caching
  * for anonymous traffic is the first scaling step — see Tech Spec §Scalability.
+ *
+ * Deliberately no `loading.tsx` on this route. A loading file wraps the page in a
+ * Suspense boundary, so Next streams the shell — and a 200 status — before this
+ * component can call notFound(). That turns an unknown slug into a soft 404 that
+ * search engines will happily index. Correct status codes matter more here than a
+ * skeleton on a page that is one indexed lookup plus two parallel queries.
  */
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
