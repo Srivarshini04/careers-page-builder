@@ -94,7 +94,12 @@ export function CareerSectionBlock({
                 </div>
               ) : null}
             </div>
-            <div>
+            {/*
+             * The eyebrow sits above the heading in the left column, so without this the
+             * prose lines up with "WHO WE ARE" rather than with the heading itself.
+             * 1.5rem is the eyebrow's line-height plus the heading's top margin.
+             */}
+            <div className="lg:mt-6">
               <RichText content={section.content} listAs="bullets" />
               {media}
             </div>
