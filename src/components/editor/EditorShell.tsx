@@ -6,6 +6,7 @@ import {
   AlertCircle,
   Check,
   ExternalLink,
+  ArrowLeft,
   Globe,
   Layers,
   LayoutList,
@@ -144,7 +145,39 @@ export function EditorShell({
     <div className="flex min-h-screen flex-col bg-ink-100 lg:h-screen lg:min-h-0 lg:overflow-hidden">
       <header className="sticky top-0 z-40 border-b border-ink-200 bg-white">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            {/*
+             * A way out of the builder, on the left where a back control belongs rather
+             * than mixed in with the actions on the right. It points at the live page
+             * candidates see, and is inert until the page is actually published —
+             * `company.published` is the saved value, so toggling Publish without saving
+             * must not imply the public URL already works.
+             */}
+            {company.published ? (
+              <Link
+                href={`/${company.slug}/careers`}
+                className="-ml-1.5 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-1.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 sm:ml-0 sm:px-2.5"
+              >
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden lg:inline">Back to careers page</span>
+                <span className="hidden sm:inline lg:hidden">Careers page</span>
+              </Link>
+            ) : (
+              <span
+                title="Publish your page from the Publish &amp; share group to open the careers page"
+                className="-ml-1.5 inline-flex h-9 shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg px-1.5 text-sm font-medium text-ink-400 sm:ml-0 sm:px-2.5"
+              >
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden lg:inline">Back to careers page</span>
+                <span className="hidden sm:inline lg:hidden">Careers page</span>
+              </span>
+            )}
+
+            <span
+              aria-hidden="true"
+              className="hidden h-6 w-px shrink-0 bg-ink-200 sm:block"
+            />
+
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink-900 text-white">
               <Layers aria-hidden="true" className="h-4 w-4" />
             </span>
@@ -160,41 +193,12 @@ export function EditorShell({
             <SaveStatus state={saveState} isDirty={isDirty} />
 
             {/*
-             * Two different things, so they read as two buttons:
-             *   Preview       — this recruiter's draft, hidden sections included
-             *   Careers page  — what candidates actually get, only once published
-             * `company.published` is the saved value, not the draft: toggling Publish
-             * without saving must not imply the public URL already works.
-             */}
-            {/*
-             * Responsive hiding lives on a wrapper, not on the control itself:
-             * buttonClasses() already sets `inline-flex`, and Tailwind emits that after
-             * `hidden`, so `hidden sm:inline-flex` on the same element never hides.
+             * Preview is the recruiter's draft, hidden sections included; the live page
+             * is reached from the back control on the left. Responsive hiding lives on a
+             * wrapper because buttonClasses() sets `inline-flex`, which Tailwind emits
+             * after `hidden` — so `hidden sm:inline-flex` on one element never hides.
              * `contents` keeps the button as the direct flex child so gaps still work.
              */}
-            <span className="hidden md:contents">
-              {company.published ? (
-                <Link
-                  href={`/${company.slug}/careers`}
-                  className={buttonClasses("ghost", "sm")}
-                >
-                  <Globe aria-hidden="true" className="h-4 w-4" />
-                  Careers page
-                </Link>
-              ) : (
-                <span
-                  title="Publish your page from the Publish &amp; share group to open the careers page"
-                  className={cn(
-                    buttonClasses("ghost", "sm"),
-                    "cursor-not-allowed opacity-40",
-                  )}
-                >
-                  <Globe aria-hidden="true" className="h-4 w-4" />
-                  Careers page
-                </span>
-              )}
-            </span>
-
             <span className="hidden sm:contents">
               <Link
                 href={`/${company.slug}/preview`}
