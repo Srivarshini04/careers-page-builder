@@ -147,31 +147,19 @@ export function EditorShell({
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             {/*
-             * A way out of the builder, on the left where a back control belongs rather
-             * than mixed in with the actions on the right. It points at the live page
-             * candidates see, and is inert until the page is actually published —
-             * `company.published` is the saved value, so toggling Publish without saving
-             * must not imply the public URL already works.
+             * Back out of the builder to the directory of pages, on the left where a
+             * back control belongs. A plain client-side link, so the session is untouched
+             * — the recruiter stays signed in and their own company still shows its Edit
+             * button there. The company's public page is reached from that card, or from
+             * the Publish & share group.
              */}
-            {company.published ? (
-              <Link
-                href={`/${company.slug}/careers`}
-                className="-ml-1.5 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-1.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 sm:ml-0 sm:px-2.5"
-              >
-                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-                <span className="hidden lg:inline">Back to careers page</span>
-                <span className="hidden sm:inline lg:hidden">Careers page</span>
-              </Link>
-            ) : (
-              <span
-                title="Publish your page from the Publish &amp; share group to open the careers page"
-                className="-ml-1.5 inline-flex h-9 shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg px-1.5 text-sm font-medium text-ink-400 sm:ml-0 sm:px-2.5"
-              >
-                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-                <span className="hidden lg:inline">Back to careers page</span>
-                <span className="hidden sm:inline lg:hidden">Careers page</span>
-              </span>
-            )}
+            <Link
+              href="/"
+              className="-ml-1.5 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-1.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 sm:ml-0 sm:px-2.5"
+            >
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Link>
 
             <span
               aria-hidden="true"

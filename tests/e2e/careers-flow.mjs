@@ -221,9 +221,8 @@ try {
 
   // ---------------------------------------------------------------- header navigation
   check(
-    "builder has a back control to the public careers page",
-    (await page.getByRole("link", { name: /back to careers page/i }).getAttribute("href")) ===
-      "/northwind-labs/careers",
+    "builder has a back control to the home directory",
+    (await page.getByRole("link", { name: /back to home/i }).getAttribute("href")) === "/",
   );
   check(
     "builder links to the preview route",
