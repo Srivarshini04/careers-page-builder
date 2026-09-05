@@ -49,6 +49,15 @@ For features such as **job CRUD, team/role management, image uploads, and advanc
    editor, a sanitiser, and an XSS surface.
 6. The public page must work with JavaScript disabled for crawlers; filtering is progressive.
 
+### The assumption that matters most
+
+Most of these are preferences I could revisit cheaply. The one that would hurt most if it
+were wrong is assumption 2, that job counts stay in the tens. Client-side filtering, the
+absence of pagination, and sending every published job in the initial HTML all rest on
+it, so a company with a few thousand roles would make the careers page slow rather than
+simply needing a small change. That is why the schema already carries the indexes needed
+to move search and filtering to the server when that assumption stops holding.
+
 ---
 
 ## 5. Architecture
