@@ -18,8 +18,6 @@ import { EmptyState } from "@/components/ui/Primitives";
 import { cn } from "@/lib/utils/cn";
 import { SECTION_TYPES, type SectionDraft, type SectionType } from "@/types";
 
-import { PanelSection } from "./PanelSection";
-
 const TYPE_LABELS: Record<SectionType, string> = {
   about: "About us",
   life: "Life at the company",
@@ -104,10 +102,11 @@ export function SectionManager({
 
   return (
     <div className="space-y-4">
-      <PanelSection
-        title="Content sections"
-        description="Reorder with the arrows. Hidden sections stay saved but aren't shown to candidates."
-      >
+      <div className="space-y-4">
+        <p className="text-sm text-ink-500">
+          Reorder with the arrows. Hidden sections stay saved but aren&apos;t shown to
+          candidates.
+        </p>
         {sections.length === 0 ? (
           <EmptyState
             title="No sections yet"
@@ -276,7 +275,7 @@ export function SectionManager({
             Add section
           </Button>
         ) : null}
-      </PanelSection>
+      </div>
     </div>
   );
 }

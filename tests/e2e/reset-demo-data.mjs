@@ -15,12 +15,12 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "demo@careerbuilder.dev";
 const PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "demo-recruiter-2024";
 
 /** Mirrors supabase/seed.sql. Keep in sync if the seed changes. */
 const SEED = {
   "northwind-labs": {
+    owner: process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "demo@careerbuilder.dev",
     company: {
       name: "Northwind Labs",
       tagline: "Developer infrastructure, built in the open",
@@ -33,6 +33,7 @@ const SEED = {
     hidden: [],
   },
   "lumen-health": {
+    owner: process.env.NEXT_PUBLIC_DEMO_EMAIL_2 ?? "lumen@careerbuilder.dev",
     company: {
       name: "Lumen Health",
       tagline: "Care that reaches further",
@@ -46,24 +47,27 @@ const SEED = {
   },
 };
 
-const { access_token: token } = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-  method: "POST",
-  headers: { apikey: key, "Content-Type": "application/json" },
-  body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
-}).then((r) => r.json());
+/**
+ * Each company has its own recruiter now, and RLS only lets an owner write to their own
+ * rows — so the reset signs in per company rather than using one blanket account.
+ */
+async function headersFor(email) {
+  const { access_token: token } = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password: PASSWORD }),
+  }).then((r) => r.json());
 
-if (!token) {
-  console.error("Could not sign in as the demo recruiter. Is the user created?");
-  process.exit(1);
+  if (!token) {
+    console.error(`Could not sign in as ${email}. Is the user created and confirmed?`);
+    process.exit(1);
+  }
+
+  return { apikey: key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
 
-const headers = {
-  apikey: key,
-  Authorization: `Bearer ${token}`,
-  "Content-Type": "application/json",
-};
-
 for (const [slug, spec] of Object.entries(SEED)) {
+  const headers = await headersFor(spec.owner);
   const [company] = await fetch(
     `${url}/rest/v1/companies?slug=eq.${slug}&select=id`,
     { headers },

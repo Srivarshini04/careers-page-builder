@@ -54,6 +54,39 @@ const sectionOrder = () =>
       nodes.filter((_, index) => index % 2 === 0).map((node) => node.textContent.trim()),
     );
 
+/**
+ * Expands one of the builder's structure groups. Waits for aria-expanded to flip rather
+ * than assuming the click landed — the first click after a cold compile can arrive
+ * before hydration, and a silent no-op here would fail much later and confusingly.
+ */
+const openGroup = async (name) => {
+  const trigger = page.getByRole("button", { name: new RegExp(`^${name}`, "i") }).first();
+  await trigger.waitFor({ state: "visible" });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if ((await trigger.getAttribute("aria-expanded")) === "true") return;
+    await trigger.click();
+    try {
+      await page.waitForFunction(
+        (label) => {
+          const button = [...document.querySelectorAll("button[aria-expanded]")].find((el) =>
+            el.textContent?.trim().toLowerCase().startsWith(label.toLowerCase()),
+          );
+          return button?.getAttribute("aria-expanded") === "true";
+        },
+        name,
+        { timeout: 4000 },
+      );
+      return;
+    } catch {
+      // fall through and retry
+    }
+  }
+  throw new Error(`Could not expand the "${name}" group`);
+};
+
+/** The live preview now renders inside an iframe, so it has its own viewport. */
+const preview = () => page.frameLocator("iframe[title='Careers page live preview']");
+
 const resultCount = async () =>
   (await page.getByText(/showing \d+ of \d+/i).first().textContent()) ?? "";
 
@@ -71,31 +104,90 @@ try {
   // ---------------------------------------------------------------- builder: branding
   await page.waitForSelector("text=Live preview");
   check("save is disabled while there is nothing to save", await page.getByRole("button", { name: /save changes/i }).isDisabled());
+  check("structure panel is present", await page.getByRole("heading", { name: /page structure/i }).isVisible());
+  check(
+    "Branding and Content groups start expanded",
+    (await page.getByRole("button", { name: /^Branding/ }).getAttribute("aria-expanded")) === "true" &&
+      (await page.getByRole("button", { name: /^Content/ }).getAttribute("aria-expanded")) === "true",
+  );
+  check(
+    "Sections group starts collapsed",
+    (await page.getByRole("button", { name: /^Sections/ }).getAttribute("aria-expanded")) === "false",
+  );
 
   await page.locator("input.font-mono.uppercase").first().fill("#e11d48");
-  await page.waitForTimeout(400);
-  const heroCta = page.locator('a[href="#open-roles"]').nth(1);
+  await page.waitForTimeout(600);
+  const heroCta = preview().locator('a[href="#open-roles"]').nth(1);
   const ctaColor = await heroCta.evaluate((el) => getComputedStyle(el).backgroundColor);
   check("brand colour repaints the live preview", ctaColor === "rgb(225, 29, 72)", ctaColor);
   check("unsaved-changes indicator appears", await page.getByText(/unsaved changes/i).isVisible());
 
   // ---------------------------------------------------------------- builder: hero
-  await page.getByRole("tab", { name: "Hero" }).click();
+  // "Content" is open by default; the fill would fail loudly if it were not.
   await page.locator("#hero-title").fill("Ship infrastructure people actually enjoy.");
   await page.waitForTimeout(400);
   check(
     "hero title updates the preview as you type",
-    await page.getByRole("heading", { name: /ship infrastructure people actually enjoy/i }).first().isVisible(),
+    await preview().locator("h1").first().textContent().then((t) => /ship infrastructure/i.test(t ?? "")),
+  );
+
+  // ---------------------------------------------------------------- device preview
+  // Each device must give the iframe a real viewport, not a squeezed desktop layout.
+  const deviceLayout = async () => ({
+    viewport: await preview().locator("body").evaluate(() => window.innerWidth),
+    sectionNav: await preview().locator("nav[aria-label='Page sections']").isVisible(),
+    jobColumns: (await preview()
+      .locator("ul.grid.items-start")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns)).split(" ").length,
+  });
+
+  const desktop = await deviceLayout();
+  check("desktop preview renders a 1280px viewport", desktop.viewport === 1280 && desktop.sectionNav && desktop.jobColumns === 2, JSON.stringify(desktop));
+
+  await page.getByRole("button", { name: "Tablet" }).click();
+  await page.waitForTimeout(900);
+  const tablet = await deviceLayout();
+  check("tablet preview renders an 834px viewport", tablet.viewport === 834 && !tablet.sectionNav && tablet.jobColumns === 2, JSON.stringify(tablet));
+
+  await page.getByRole("button", { name: "Mobile" }).click();
+  await page.waitForTimeout(900);
+  const mobileLayout = await deviceLayout();
+  check("mobile preview renders a 390px viewport, single column", mobileLayout.viewport === 390 && !mobileLayout.sectionNav && mobileLayout.jobColumns === 1, JSON.stringify(mobileLayout));
+
+  await page.locator("#hero-title").fill("Ship infrastructure people actually enjoy.");
+  await page.waitForTimeout(700);
+  check(
+    "preview still updates live while in mobile mode",
+    await preview().locator("h1").first().textContent().then((t) => /ship infrastructure/i.test(t ?? "")),
+  );
+
+  await page.getByRole("button", { name: "Desktop" }).click();
+  await page.waitForTimeout(700);
+
+  // The preview iframe must be same-origin with a real URL: an about:blank document
+  // sends no referrer and YouTube refuses to play (error 153).
+  check(
+    "preview iframe runs on a real same-origin document",
+    await preview().locator("body").evaluate(() => document.URL).then((url) => url.includes("/preview-frame")),
+  );
+  check(
+    "culture video embeds inside the preview",
+    (await preview().locator('iframe[title*="culture video"]').count()) === 1,
+  );
+
+  check(
+    "builder window itself does not scroll",
+    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1),
   );
 
   // ---------------------------------------------------------------- builder: sections
-  await page.getByRole("tab", { name: "Sections" }).click();
+  await openGroup("Sections");
   await page.waitForTimeout(300);
   const before = await sectionOrder();
 
   await page.getByRole("button", { name: /^Hide Benefits and perks$/ }).click();
   await page.waitForTimeout(300);
-  check("hiding a section dims it in the preview", (await page.getByText(/candidates won.t see this section/i).count()) > 0);
+  check("hiding a section dims it in the preview", (await preview().getByText(/candidates won.t see this section/i).count()) > 0);
 
   await page.getByRole("button", { name: /^Move What we believe up$/ }).click();
   await page.waitForTimeout(300);
@@ -110,15 +202,16 @@ try {
 
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForSelector("text=Live preview");
+  await page.waitForTimeout(1200); // let the preview iframe mount after reload
   check(
     "hero title survives a reload",
-    await page.getByRole("heading", { name: /ship infrastructure people actually enjoy/i }).first().isVisible(),
+    await preview().locator("h1").first().textContent().then((t) => /ship infrastructure/i.test(t ?? "")),
   );
   check(
     "brand colour survives a reload",
     (await page.locator("input.font-mono.uppercase").first().inputValue()).toLowerCase() === "#e11d48",
   );
-  await page.getByRole("tab", { name: "Sections" }).click();
+  await openGroup("Sections");
   await page.waitForTimeout(400);
   check("section order survives a reload", JSON.stringify(await sectionOrder()) === JSON.stringify(after));
 
@@ -144,6 +237,10 @@ try {
   check("public page reflects the saved hero", /ship infrastructure/i.test((await page.getByRole("heading", { level: 1 }).textContent()) ?? ""));
   check("hidden section is absent for candidates", (await page.getByRole("heading", { name: "Benefits and perks" }).count()) === 0);
   check("no preview-only markers leak to candidates", (await page.getByText(/candidates won.t see this section/i).count()) === 0);
+  check(
+    "careers header links back to the company directory",
+    (await page.getByRole("link", { name: /browse all companies/i }).getAttribute("href")) === "/",
+  );
 
   // ---------------------------------------------------------------- search and filters
   check("all roles listed by default", /showing 10 of 10/i.test(await resultCount()), (await resultCount()).trim());
@@ -218,6 +315,74 @@ try {
   const lumenColor = await page.locator('a[href="#open-roles"]').nth(1).evaluate((el) => getComputedStyle(el).backgroundColor);
   check("second company renders its own brand colour", lumenColor === "rgb(15, 157, 118)", lumenColor);
   check("second company shows only its own roles", /showing 4 of 4/i.test((await page.getByText(/showing \d+ of \d+/i).first().textContent()) ?? ""));
+
+  // ---------------------------------------------------------------- tenant isolation
+  /*
+   * Each company has its own recruiter. Signing in as one and opening the other
+   * company's builder must be refused — this is the check that would catch a broken
+   * RLS policy or a missing ownership guard, so it drives the real UI rather than
+   * asserting against the database.
+   */
+  // These navigations use domcontentloaded, not networkidle: the careers page embeds a
+  // YouTube player that keeps connections open, so the network never goes idle.
+  const otherTenant = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const otherPage = await otherTenant.newPage();
+
+  await otherPage.goto(`${BASE}/login`, { waitUntil: "networkidle" });
+  await otherPage.getByRole("button", { name: /^Lumen Health/ }).click();
+  await otherPage.getByRole("button", { name: /^sign in$/i }).click();
+  await otherPage.waitForURL(/\/lumen-health\/edit/, { timeout: 30000 });
+  check("second recruiter lands on their own company", otherPage.url().includes("/lumen-health/edit"));
+
+  await otherPage.goto(`${BASE}/northwind-labs/edit`, { waitUntil: "networkidle" });
+  check(
+    "second recruiter is refused the other company's builder",
+    await otherPage.getByRole("heading", { name: /don.t have access to this company/i }).isVisible(),
+  );
+
+  await otherPage.goto(`${BASE}/northwind-labs/preview`, { waitUntil: "networkidle" });
+  check(
+    "second recruiter is refused the other company's preview",
+    await otherPage.getByRole("heading", { name: /don.t have access to this company/i }).isVisible(),
+  );
+
+  await otherPage.goto(`${BASE}/northwind-labs/careers`, { waitUntil: "domcontentloaded" });
+  check(
+    "the other company's public page is still readable by anyone",
+    await otherPage.getByRole("heading", { level: 1 }).isVisible(),
+  );
+  check(
+    "no owner bar on a company this recruiter does not own",
+    (await otherPage.getByText(/as its owner/i).count()) === 0,
+  );
+
+  await otherPage.goto(`${BASE}/lumen-health/careers`, { waitUntil: "domcontentloaded" });
+  check(
+    "owner bar appears on the recruiter's own live page",
+    (await otherPage.getByText(/as its owner/i).count()) === 1 &&
+      (await otherPage.getByRole("link", { name: /^edit page$/i }).getAttribute("href")) ===
+        "/lumen-health/edit",
+  );
+
+  // Candidates and crawlers are anonymous and must never receive the owner chrome.
+  const anonymous = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const anonymousPage = await anonymous.newPage();
+  await anonymousPage.goto(`${BASE}/northwind-labs/careers`, { waitUntil: "domcontentloaded" });
+  check(
+    "anonymous visitors never see the owner bar",
+    (await anonymousPage.getByText(/as its owner/i).count()) === 0 &&
+      (await anonymousPage.getByRole("link", { name: /^edit page$/i }).count()) === 0,
+  );
+
+  await otherPage.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  const editLinks = await otherPage.getByRole("link", { name: /edit page/i }).evaluateAll((els) =>
+    els.map((el) => el.getAttribute("href")),
+  );
+  check(
+    "directory offers Edit only for the company this recruiter owns",
+    editLinks.length === 1 && editLinks[0] === "/lumen-health/edit",
+    editLinks.join(", ") || "(none)",
+  );
 
   check("no uncaught console or page errors", problems.length === 0, problems.slice(0, 3).join(" | "));
 } finally {

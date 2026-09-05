@@ -2,6 +2,18 @@ import { parseRichText } from "@/lib/utils/text";
 import { cn } from "@/lib/utils/cn";
 
 /**
+ * Card grids are laid out to avoid an orphan on the last row — four values in a
+ * three-column grid leaves one card stranded beside a column of dead space, which reads
+ * as a layout bug and adds a whole empty row of height. Recruiters control the item
+ * count, so the grid adapts instead of demanding they write in multiples of three.
+ */
+function cardColumns(count: number): string {
+  if (count === 4) return "lg:grid-cols-2";
+  if (count === 1) return "lg:grid-cols-1";
+  return "lg:grid-cols-3";
+}
+
+/**
  * Renders recruiter-authored section content. Paragraphs stay as prose; bullet lists
  * become a card grid, which is what makes "Our Values" / "Benefits" look designed
  * rather than like a dumped textarea.
@@ -55,7 +67,7 @@ export function RichText({
         }
 
         return (
-          <ul key={index} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul key={index} className={cn("grid gap-4 sm:grid-cols-2", cardColumns(block.items.length))}>
             {block.items.map((item, itemIndex) => (
               <li
                 key={itemIndex}

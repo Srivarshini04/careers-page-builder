@@ -48,7 +48,8 @@ of scope? Being explicit about the difference reads well._
 
 ## 4. Assumptions
 
-1. One recruiter owns one company. Multi-recruiter teams are a later table, not a later rewrite.
+1. One recruiter owns one company, and one company has one recruiter. Multi-recruiter
+   teams are a later table, not a later rewrite.
 2. Job counts per company are in the tens, not thousands — so client-side filtering is honest.
 3. Jobs are authored elsewhere (the ATS); this module renders and filters them.
 4. Recruiters have image URLs available; uploads are a hosting concern, not a product one.
@@ -258,7 +259,7 @@ Mobile-first, breakpoints at `sm` 640 / `md` 768 / `lg` 1024.
 | Hero          | Stacked, 20/24 padding              | 32 padding, constrained measure   |
 | Filters       | Stacked full-width controls         | 4-column row                     |
 | Job list      | Single column                       | Two-column grid, top-aligned     |
-| Builder       | Panels stacked, live pane hidden    | 400px control rail + live preview |
+| Builder       | Panels stacked, page scrolls        | Fixed app shell; only panel + preview scroll |
 | Section cards | Wrapping icon-button row            | Same, roomier                    |
 
 `min-width: 0` is applied globally and `overflow-x: hidden` on `body` to kill horizontal
@@ -274,7 +275,7 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
-**End-to-end (Playwright, 40 checks — `npm run test:e2e`):**
+**End-to-end (Playwright, 61 checks — `npm run test:e2e`):**
 
 Drives a real browser against a real dev server and a real Supabase project, covering
 the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,
@@ -287,6 +288,8 @@ whole point) and restores the seeded state when it finishes.
 | # | Step                                     | Expected |
 | - | ---------------------------------------- | -------- |
 | 1 | Sign in with demo credentials            | Lands on `/northwind-labs/edit` |
+| 1b| Sign in as `lumen@`, open `/northwind-labs/edit` | "You don't have access" screen |
+| 1c| Own careers page while signed in         | Owner bar with Edit page; absent when anonymous |
 | 2 | Visit `/[slug]/edit` signed out          | Redirect to `/login?next=…` |
 | 3 | Change primary colour                    | Live pane restyles immediately |
 | 4 | Edit hero title                          | Live pane updates per keystroke |

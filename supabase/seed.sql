@@ -1,11 +1,11 @@
 -- =============================================================================
 -- Careers Page Builder — sample data
 --
--- PREREQUISITE: create the demo recruiter first
---   Supabase Dashboard -> Authentication -> Users -> Add user
---     Email:    demo@careerbuilder.dev
---     Password: demo-recruiter-2024
---     Tick "Auto Confirm User"
+-- PREREQUISITE: create TWO recruiters first — one per company, so that tenant
+-- isolation is actually demonstrable rather than assumed.
+--   Supabase Dashboard -> Authentication -> Users -> Add user  (tick "Auto Confirm User")
+--     demo@careerbuilder.dev   / demo-recruiter-2024   -> owns Northwind Labs
+--     lumen@careerbuilder.dev  / demo-recruiter-2024   -> owns Lumen Health
 --
 -- Then run this file in the SQL editor. It is idempotent: re-running resets the two
 -- demo companies back to this exact state.
@@ -14,14 +14,21 @@
 do $$
 declare
   demo_user_id  uuid;
+  lumen_user_id uuid;
   northwind_id  uuid;
   lumen_id      uuid;
 begin
-  select id into demo_user_id from auth.users where email = 'demo@careerbuilder.dev';
+  select id into demo_user_id  from auth.users where email = 'demo@careerbuilder.dev';
+  select id into lumen_user_id from auth.users where email = 'lumen@careerbuilder.dev';
 
   if demo_user_id is null then
     raise exception
-      'Demo recruiter not found. Create the user demo@careerbuilder.dev in Authentication -> Users (auto-confirm), then re-run this script.';
+      'Recruiter demo@careerbuilder.dev not found. Create it in Authentication -> Users (auto-confirm), then re-run this script.';
+  end if;
+
+  if lumen_user_id is null then
+    raise exception
+      'Recruiter lumen@careerbuilder.dev not found. Create it in Authentication -> Users (auto-confirm), then re-run this script.';
   end if;
 
   -- ---------------------------------------------------------------------------
@@ -73,7 +80,7 @@ begin
     hero_title, hero_description,
     banner_url, culture_video_url, website_url, location, published
   ) values (
-    demo_user_id,
+    lumen_user_id,
     'Lumen Health',
     'lumen-health',
     'Care that reaches further',
@@ -202,6 +209,6 @@ begin
   (lumen_id, 'Clinical Operations Associate', 'Pune, India', 'Contract', 'Operations',
    E'A twelve-month contract supporting the onboarding of new diagnostic partners across western India.\n\nWhat you will do:\n- Run onboarding for 5 to 8 new lab partners each quarter\n- Train clinic staff and stay their first point of contact\n- Feed recurring friction back to the product team\n\nWhat we look for: A clinical or healthcare operations background, and willingness to travel roughly a week a month.');
 
-  raise notice 'Seed complete. Northwind Labs: % | Lumen Health: %', northwind_id, lumen_id;
+  raise notice 'Seed complete. Northwind Labs: % (demo@) | Lumen Health: % (lumen@)', northwind_id, lumen_id;
 end;
 $$;

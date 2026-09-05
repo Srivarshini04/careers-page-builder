@@ -8,9 +8,13 @@ import {
   ExternalLink,
   Globe,
   Layers,
+  LayoutList,
   LogOut,
   Monitor,
+  Palette,
+  PanelsTopLeft,
   Save,
+  Type,
 } from "lucide-react";
 
 import { saveCareersPage, type SaveResult } from "@/app/[companySlug]/edit/actions";
@@ -23,17 +27,10 @@ import type { CareerSection, CompanyDraft, Company, Job, SectionDraft } from "@/
 
 import { BrandingPanel } from "./BrandingPanel";
 import { HeroPanel } from "./HeroPanel";
+import { PanelGroup } from "./PanelGroup";
+import { PreviewSurface, type DeviceId } from "./PreviewSurface";
 import { SectionManager } from "./SectionManager";
 import { SharePanel } from "./SharePanel";
-
-type TabId = "branding" | "hero" | "sections" | "share";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "branding", label: "Branding" },
-  { id: "hero", label: "Hero" },
-  { id: "sections", label: "Sections" },
-  { id: "share", label: "Share" },
-];
 
 type SaveState =
   | { kind: "idle" }
@@ -60,11 +57,11 @@ export function EditorShell({
   jobs: Job[];
   publicUrl: string;
 }) {
-  const [tab, setTab] = useState<TabId>("branding");
   const [draft, setDraft] = useState<CompanyDraft>(() => toDraft(company));
   const [sections, setSections] = useState<SectionDraft[]>(() =>
     initialSections.map(toSectionDraft),
   );
+  const [device, setDevice] = useState<DeviceId>("desktop");
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
   const [pending, startTransition] = useTransition();
 
@@ -141,7 +138,10 @@ export function EditorShell({
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-ink-100">
+    /* Fixed app shell on desktop: the window never scrolls, only the structure panel
+       and the preview do. Below lg the layout stacks and scrolls normally, which is
+       the right behaviour on a phone. */
+    <div className="flex min-h-screen flex-col bg-ink-100 lg:h-screen lg:min-h-0 lg:overflow-hidden">
       <header className="sticky top-0 z-40 border-b border-ink-200 bg-white">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -183,7 +183,7 @@ export function EditorShell({
                 </Link>
               ) : (
                 <span
-                  title="Publish your page from the Share tab to view it live"
+                  title="Publish your page from the Publish &amp; share group to view it live"
                   className={cn(
                     buttonClasses("ghost", "sm"),
                     "cursor-not-allowed opacity-40",
@@ -249,71 +249,61 @@ export function EditorShell({
         ) : null}
       </header>
 
-      <div className="flex flex-1 flex-col lg:flex-row lg:items-stretch">
+      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row lg:items-stretch">
         {/* Controls */}
         <div className="w-full border-b border-ink-200 bg-white lg:w-100 lg:shrink-0 lg:border-r lg:border-b-0">
-          <div className="lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:flex-col">
-            <nav
-              aria-label="Editor panels"
-              className="border-b border-ink-200 px-2 sm:px-4"
-            >
-              <ul className="flex gap-1 overflow-x-auto" role="tablist">
-                {TABS.map((item) => (
-                  <li key={item.id} role="presentation">
-                    <button
-                      type="button"
-                      role="tab"
-                      id={`tab-${item.id}`}
-                      aria-selected={tab === item.id}
-                      aria-controls={`panel-${item.id}`}
-                      onClick={() => setTab(item.id)}
-                      className={cn(
-                        "border-b-2 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors",
-                        tab === item.id
-                          ? "border-ink-900 text-ink-900"
-                          : "border-transparent text-ink-500 hover:text-ink-800",
-                      )}
-                    >
-                      {item.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+          <div className="flex h-full flex-col lg:min-h-0">
+            <div className="flex items-center gap-2 border-b border-ink-200 px-4 py-3.5">
+              <PanelsTopLeft aria-hidden="true" className="h-4 w-4 text-ink-500" />
+              <h2 className="text-sm font-semibold text-ink-900">Page structure</h2>
+            </div>
 
-            <div
-              id={`panel-${tab}`}
-              role="tabpanel"
-              aria-labelledby={`tab-${tab}`}
-              className="flex-1 overflow-y-auto p-4 sm:p-6"
-            >
-              {tab === "branding" ? (
+            {/*
+             * Collapsible groups rather than tabs: branding and content are usually
+             * edited together, and a recruiter can see the whole shape of the page
+             * without hunting through panels.
+             */}
+            <div className="flex-1 overflow-y-auto lg:min-h-0">
+              <PanelGroup
+                icon={Palette}
+                title="Branding"
+                description="Colours, logo, banner and video"
+                defaultOpen
+              >
                 <BrandingPanel draft={draft} onChange={updateDraft} />
-              ) : null}
-              {tab === "hero" ? <HeroPanel draft={draft} onChange={updateDraft} /> : null}
-              {tab === "sections" ? (
+              </PanelGroup>
+
+              <PanelGroup
+                icon={Type}
+                title="Content"
+                description="Hero headline and description"
+                defaultOpen
+              >
+                <HeroPanel draft={draft} onChange={updateDraft} />
+              </PanelGroup>
+
+              <PanelGroup
+                icon={LayoutList}
+                title="Sections"
+                description={`${sections.length} ${sections.length === 1 ? "block" : "blocks"} · ${sections.filter((section) => section.is_visible).length} visible`}
+              >
                 <SectionManager sections={sections} onChange={setSections} />
-              ) : null}
-              {tab === "share" ? (
-                <SharePanel
-                  draft={draft}
-                  onChange={updateDraft}
-                  publicUrl={publicUrl}
-                />
-              ) : null}
+              </PanelGroup>
+
+              <PanelGroup
+                icon={Globe}
+                title="Publish & share"
+                description={draft.published ? "Live" : "Not published"}
+              >
+                <SharePanel draft={draft} onChange={updateDraft} publicUrl={publicUrl} />
+              </PanelGroup>
             </div>
           </div>
         </div>
 
         {/* Live preview */}
-        <div className="min-w-0 flex-1 p-4 sm:p-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-ink-600">
-              Live preview
-              <span className="ml-2 text-xs font-normal text-ink-500">
-                updates as you type
-              </span>
-            </p>
+        <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:min-h-0">
+          <div className="mb-1 flex justify-end">
             <Link
               href={`/${company.slug}/preview`}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 underline-offset-4 hover:underline"
@@ -323,19 +313,21 @@ export function EditorShell({
             </Link>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-ink-200 bg-white shadow-sm">
-            <div className="flex h-9 items-center gap-1.5 border-b border-ink-200 bg-ink-50 px-3">
-              <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-ink-300" />
-              <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-ink-300" />
-              <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-ink-300" />
-              <p className="ml-2 truncate font-mono text-xs text-ink-500">
-                {publicUrl.replace(/^https?:\/\//, "")}
-              </p>
-            </div>
-            {/* Non-interactive mirror of the candidate page; the real thing is one click away. */}
-            <div className="max-h-[calc(100vh-11rem)] overflow-y-auto">
+          {/*
+           * The preview renders the real careers page, so its links are real links —
+           * "All companies" or a company website would navigate the recruiter out of
+           * the builder and lose unsaved work. In-page anchors still scroll, and buttons
+           * (filters, job cards) still work; only outbound navigation is swallowed.
+           * Synthetic events bubble through the portal, so this still catches clicks
+           * that happen inside the iframe.
+           */}
+          <div
+            className="flex min-h-0 flex-1 flex-col"
+            onClickCapture={swallowOutboundClicks}
+          >
+            <PreviewSurface device={device} onDeviceChange={setDevice}>
               <CareersPage data={previewData} mode="draft" />
-            </div>
+            </PreviewSurface>
           </div>
         </div>
       </div>
@@ -409,6 +401,20 @@ function toSectionDraft(section: CareerSection): SectionDraft {
     display_order: section.display_order,
     is_visible: section.is_visible,
   };
+}
+
+/**
+ * Keeps clicks inside the live preview from leaving the builder. Same-page anchors
+ * (`#open-roles`) are allowed through so the pane still scrolls like the real page.
+ */
+function swallowOutboundClicks(event: React.MouseEvent<HTMLDivElement>) {
+  const anchor = (event.target as HTMLElement).closest("a");
+  if (!anchor) return;
+
+  const href = anchor.getAttribute("href") ?? "";
+  if (href.startsWith("#")) return;
+
+  event.preventDefault();
 }
 
 /** Drops the client-only `isNew` marker so drafts compare and serialise consistently. */

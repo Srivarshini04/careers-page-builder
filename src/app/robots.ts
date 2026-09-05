@@ -11,7 +11,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         userAgent: "*",
         allow: "/",
         // Recruiter surfaces are private and must never appear in search results.
-        disallow: ["/login", "/go", "/*/edit", "/*/preview"],
+        disallow: ["/login", "/go", "/preview-frame", "/*/edit", "/*/preview"],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

@@ -37,10 +37,13 @@ _Two or three paragraphs, first person. Suggested things to cover:_
   live WCAG contrast readout), banner image, culture video
 - Hero: title and description, which also feed the page's `<title>`/meta description
 - Sections: add, edit, rename, change type, show/hide, reorder (Up/Down), remove
-- Live preview pane that re-renders on every keystroke, plus a full-screen preview route
+- Live preview that re-renders on every keystroke, with Desktop / Tablet / Mobile device
+  modes rendered in a real iframe viewport, plus a full-screen preview route
 - Explicit Save with idle / saving / saved / error states, `⌘S` shortcut, and an
   unsaved-changes guard on navigation
 - Publish toggle and one-click copy of the public careers link
+- An owner-only bar on the live careers page linking straight back into the builder —
+  rendered for that company's recruiter alone, never for candidates or other recruiters
 
 **Candidate**
 
@@ -113,7 +116,7 @@ Three things worth knowing:
 ```
 src/
   app/
-    page.tsx                      Landing page, lists published companies
+    page.tsx                      Landing page: hero, feature cards, company directory
     login/                        Recruiter sign in
     go/                           Post-login hop → the recruiter's company builder
     actions/auth.ts               Sign-out server action
@@ -125,11 +128,12 @@ src/
     robots.ts, sitemap.ts         SEO routes
     error.tsx, not-found.tsx      Global error / 404 boundaries
   components/
+    home/                         CompanyDirectory (filterable), PagePreview
     careers/                      CareersPage, Header, Hero, SectionBlock, Footer,
-                                  CultureVideo, StructuredData (JSON-LD)
+                                  CultureVideo, OwnerBar, StructuredData (JSON-LD)
     jobs/                         JobsExplorer, JobFilters, JobCard
-    editor/                       EditorShell, BrandingPanel, HeroPanel,
-                                  SectionManager, SharePanel
+    editor/                       EditorShell, PanelGroup, PreviewSurface,
+                                  BrandingPanel, HeroPanel, SectionManager, SharePanel
     ui/                           Button, Field/Input/Textarea/Select, ColorPicker,
                                   RichText, Primitives (Badge/Toggle/EmptyState/Spinner)
   lib/
@@ -145,7 +149,7 @@ supabase/
   migrations/                     Policy changes applied after the initial schema
 tests/
   *.test.ts                       Vitest unit tests (36)
-  e2e/                            Playwright end-to-end suite (40 checks)
+  e2e/                            Playwright end-to-end suite (61 checks)
 ```
 
 ---
@@ -165,10 +169,10 @@ npm install
 ### 3. Create the Supabase project
 
 1. Create a new project at [supabase.com/dashboard](https://supabase.com/dashboard).
-2. **Authentication → Users → Add user**
-   - Email: `demo@careerbuilder.dev`
-   - Password: `demo-recruiter-2024`
-   - ✅ **Auto Confirm User** (important — otherwise sign-in fails)
+2. **Authentication → Users → Add user** — twice, one recruiter per company.
+   Tick ✅ **Auto Confirm User** on both (otherwise sign-in fails).
+   - `demo@careerbuilder.dev` / `demo-recruiter-2024` → owns Northwind Labs
+   - `lumen@careerbuilder.dev` / `demo-recruiter-2024` → owns Lumen Health
 3. **SQL Editor** → paste and run `supabase/schema.sql`.
 4. **SQL Editor** → paste and run `supabase/seed.sql`.
    It looks up the demo user by email and fails with a clear message if step 2 was missed.
@@ -202,7 +206,7 @@ npm run lint         # eslint
 # Optional — end-to-end run against a live dev server + Supabase.
 # Needs `npm run dev` running and `npx playwright install chromium`
 # (or PW_CHANNEL=chrome to reuse a system Chrome install).
-npm run test:e2e     # 40 browser checks; restores demo data when it finishes
+npm run test:e2e     # 61 browser checks; restores demo data when it finishes
 npm run reset:demo   # restore the demo companies to their seeded state
 ```
 
@@ -210,12 +214,16 @@ npm run reset:demo   # restore the demo companies to their seeded state
 
 ## Demo credentials
 
-```
-Email:    demo@careerbuilder.dev
-Password: demo-recruiter-2024
-```
+One recruiter per company, so tenant isolation is demonstrable rather than assumed —
+sign in as one and the other company's builder is blocked by Row Level Security, not
+just hidden in the UI.
 
-The login form is prefilled with these.
+| Company        | Email                     | Password              |
+| -------------- | ------------------------- | --------------------- |
+| Northwind Labs | `demo@careerbuilder.dev`  | `demo-recruiter-2024` |
+| Lumen Health   | `lumen@careerbuilder.dev` | `demo-recruiter-2024` |
+
+The login form is prefilled with the first account; the demo panel switches between them.
 
 ---
 
@@ -336,7 +344,8 @@ These are real and worth stating plainly rather than hiding:
 - **Every page is dynamically rendered.** No ISR or edge caching yet, because the
   Supabase client reads auth cookies on every request.
 - **Single owner per company.** `companies.owner_id` is one user; there are no roles,
-  invitations or teams.
+  invitations or teams. Each demo company has its own recruiter, but a company cannot
+  have two.
 - **No job application flow** — explicitly out of scope per the brief.
 
 ## ✍️ YOUR WORDS — Improvement plan
@@ -359,10 +368,11 @@ parsing, video URL normalisation, brand-colour contrast, and server-side payload
 validation. Pure functions only, so they run in under a second with no server or
 database.
 
-**End-to-end — `npm run test:e2e`.** 40 checks driving a real browser against a real dev
+**End-to-end — `npm run test:e2e`.** 61 checks driving a real browser against a real dev
 server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
 sections, save, reload and confirm persistence, preview, the public page, search, both
 filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an
 unknown slug, no horizontal overflow at 375px, and tenant separation between the two
-companies. It mutates demo data on purpose — proving saves reach Postgres is the point —
-then restores the seeded state on the way out.
+companies, and tenant isolation (signing in as one recruiter and being refused the other
+company's builder). It mutates demo data on purpose — proving saves reach Postgres is the
+point — then restores the seeded state on the way out.

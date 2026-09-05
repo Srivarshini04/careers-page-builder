@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CareersPage } from "@/components/careers/CareersPage";
+import { OwnerBar } from "@/components/careers/OwnerBar";
 import { StructuredData } from "@/components/careers/StructuredData";
 import { SetupNotice } from "@/components/SetupNotice";
 import { getCareersPageData, getCompanyBySlug } from "@/lib/db/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/server";
 import { toPlainText, truncate } from "@/lib/utils/text";
 import { getSiteUrl } from "@/lib/utils/url";
 
@@ -88,8 +90,22 @@ export default async function PublicCareersPage({
   const { q, location, type } = await searchParams;
   const siteUrl = await getSiteUrl();
 
+  /*
+   * The owner bar is rendered here rather than inside <CareersPage> on purpose: that
+   * component is also the builder's live preview and the /preview route, and platform
+   * chrome has no business appearing inside either.
+   */
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isOwner = Boolean(user) && data.company.owner_id === user?.id;
+
   return (
     <>
+      {isOwner ? (
+        <OwnerBar slug={data.company.slug} companyName={data.company.name} />
+      ) : null}
       <StructuredData
         company={data.company}
         sections={data.sections}
