@@ -8,7 +8,8 @@ import { getCompanyBySlug } from "./queries";
 export type AuthzResult =
   | { status: "unauthenticated" }
   | { status: "not-found" }
-  | { status: "forbidden"; userId: string }
+  /** The company is returned so callers can offer what this user *can* see. */
+  | { status: "forbidden"; userId: string; company: Company }
   | { status: "ok"; userId: string; company: Company };
 
 /**
@@ -33,7 +34,7 @@ export async function authorizeCompanyAccess(slug: string): Promise<AuthzResult>
 
   // Strict: an unowned company is not editable by whoever happens to be signed in.
   if (company.owner_id !== user.id) {
-    return { status: "forbidden", userId: user.id };
+    return { status: "forbidden", userId: user.id, company };
   }
 
   return { status: "ok", userId: user.id, company };

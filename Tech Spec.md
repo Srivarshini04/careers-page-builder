@@ -275,7 +275,7 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
-**End-to-end (Playwright, 60 checks — `npm run test:e2e`):**
+**End-to-end (Playwright, 61 checks — `npm run test:e2e`):**
 
 Drives a real browser against a real dev server and a real Supabase project, covering
 the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,
@@ -288,7 +288,7 @@ whole point) and restores the seeded state when it finishes.
 | # | Step                                     | Expected |
 | - | ---------------------------------------- | -------- |
 | 1 | Sign in with demo credentials            | Lands on `/northwind-labs/edit` |
-| 1b| Sign in as `lumen@`, open `/northwind-labs/edit` | "You don't have access" screen |
+| 1b| Sign in as `lumen@`, open `/northwind-labs/edit` | Redirected to that company's public careers page |
 | 1c| Own careers page while signed in         | Owner bar with Edit page; absent when anonymous |
 | 2 | Visit `/[slug]/edit` signed out          | Redirect to `/login?next=…` |
 | 3 | Change primary colour                    | Live pane restyles immediately |

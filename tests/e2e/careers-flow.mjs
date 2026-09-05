@@ -338,16 +338,37 @@ try {
   await otherPage.waitForURL(/\/lumen-health\/edit/, { timeout: 30000 });
   check("second recruiter lands on their own company", otherPage.url().includes("/lumen-health/edit"));
 
-  await otherPage.goto(`${BASE}/northwind-labs/edit`, { waitUntil: "networkidle" });
+  // A recruiter route they do not own is refused, and they land on the one thing they
+  // are allowed to see — the public page — rather than on a dead end.
+  /*
+   * The redirect is issued server-side, so the navigation has to be allowed to settle —
+   * reading url() straight after domcontentloaded catches the pre-redirect URL.
+   */
+  const settlesOnCareers = async (path) => {
+    await otherPage.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
+    try {
+      await otherPage.waitForURL(/\/northwind-labs\/careers$/, { timeout: 20000 });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   check(
-    "second recruiter is refused the other company's builder",
-    await otherPage.getByRole("heading", { name: /don.t have access to this company/i }).isVisible(),
+    "second recruiter is redirected off the other company's builder",
+    await settlesOnCareers("/northwind-labs/edit"),
+    otherPage.url(),
+  );
+  check(
+    "second recruiter is redirected off the other company's preview",
+    await settlesOnCareers("/northwind-labs/preview"),
+    otherPage.url(),
   );
 
-  await otherPage.goto(`${BASE}/northwind-labs/preview`, { waitUntil: "networkidle" });
   check(
-    "second recruiter is refused the other company's preview",
-    await otherPage.getByRole("heading", { name: /don.t have access to this company/i }).isVisible(),
+    "the redirected page carries no builder controls",
+    (await otherPage.getByRole("link", { name: /^edit page$/i }).count()) === 0 &&
+      (await otherPage.getByText(/as its owner/i).count()) === 0,
   );
 
   await otherPage.goto(`${BASE}/northwind-labs/careers`, { waitUntil: "domcontentloaded" });

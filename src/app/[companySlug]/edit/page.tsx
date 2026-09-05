@@ -29,7 +29,19 @@ export default async function EditPage({
     redirect(`/login?next=/${companySlug}/edit`);
   }
   if (access.status === "not-found") notFound();
-  if (access.status === "forbidden") return <NoAccess slug={companySlug} />;
+  /*
+   * A recruiter who does not own this company has nothing to do on a recruiter route,
+   * but the company's public page is something they (and anyone) may read — so send
+   * them there rather than to a wall. This is what makes browser Back onto a stale
+   * builder URL land somewhere useful instead of a dead end.
+   *
+   * When the page is unpublished there is genuinely nothing to show, so the explicit
+   * refusal stands.
+   */
+  if (access.status === "forbidden") {
+    if (access.company.published) redirect(`/${companySlug}/careers`);
+    return <NoAccess slug={companySlug} />;
+  }
 
   const { company } = access;
   const [sections, jobs, siteUrl] = await Promise.all([
