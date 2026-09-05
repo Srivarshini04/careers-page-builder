@@ -81,8 +81,9 @@ to move search and filtering to the server when that assumption stops holding.
 
 **Key structural decision:** `components/careers/CareersPage.tsx` is a plain (non-async)
 component rendered by all three surfaces — public page, `/preview`, and the builder's
-live pane. `mode="draft"` dims hidden sections instead of removing them. There is no
-second implementation of the careers page to keep in sync.
+live pane. Hidden sections are dropped in all three, so a preview can never show
+something a candidate would not get. There is no second implementation of the careers
+page to keep in sync.
 
 **Rendering split:**
 
@@ -281,7 +282,7 @@ scroll from long unbroken strings.
 - `tests/validation.test.ts` — required fields, unsafe URLs, bad hex, unknown section
   types coerced to `custom`, non-UUID ids rejected, `display_order` re-derivation
 
-**End-to-end (Playwright, 65 checks — `npm run test:e2e`):**
+**End-to-end (Playwright, 66 checks — `npm run test:e2e`):**
 
 Drives a real browser against a real dev server and a real Supabase project, covering
 the numbered manual plan below plus JSON-LD shape, heading structure, focus visibility,
@@ -304,7 +305,7 @@ whole point) and restores the seeded state when it finishes.
 | 7 | Add and remove a section                 | Appears/disappears correctly |
 | 8 | Save                                     | "Saving…" → "Saved"; button disables when clean |
 | 9 | Reload the editor                        | All changes persisted |
-| 10| Open `/[slug]/preview`                   | Same render, hidden sections dimmed |
+| 10| Open `/[slug]/preview`                   | Same render; hidden sections absent |
 | 11| Open `/[slug]/careers`                   | Hidden sections gone |
 | 12| Search "front"                           | Only Frontend Engineer |
 | 13| Filter location                          | Count updates, list narrows |

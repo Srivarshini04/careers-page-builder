@@ -92,8 +92,8 @@ Three things worth knowing:
 
 1. **One renderer, three surfaces.** `components/careers/CareersPage.tsx` is used by the
    public page, the full-screen preview and the builder's live pane. The only difference
-   is where the data comes from and whether hidden sections are dimmed or dropped, so
-   the preview cannot drift from what candidates see.
+   only difference is where the data comes from. Hidden sections are dropped in all
+   three, so the preview cannot show anything a candidate would not get.
 2. **No service-role key anywhere.** Every query runs as the visitor (anon or the
    signed-in recruiter) through RLS. A bug in application code cannot leak another
    company's data.
@@ -141,7 +141,7 @@ supabase/
   migrations/                     Policy changes applied after the initial schema
 tests/
   *.test.ts                       Vitest unit tests (38)
-  e2e/                            Playwright end-to-end suite (65 checks)
+  e2e/                            Playwright end-to-end suite (66 checks)
 ```
 
 ---
@@ -200,7 +200,7 @@ npm run lint         # eslint
 # Optional — end-to-end run against a live dev server + Supabase.
 # Needs `npm run dev` running and `npx playwright install chromium`
 # (or PW_CHANNEL=chrome to reuse a system Chrome install).
-npm run test:e2e     # 65 browser checks; restores demo data when it finishes
+npm run test:e2e     # 66 browser checks; restores demo data when it finishes
 npm run reset:demo   # restore the demo companies to their seeded state
 ```
 
@@ -229,7 +229,7 @@ The login form is prefilled with the first account; the demo panel switches betw
 | `/login`             | Public                | Recruiter sign in                               |
 | `/go`                | Authenticated         | Redirects to the recruiter's own company builder |
 | `/[slug]/edit`       | Owner only            | The builder                                     |
-| `/[slug]/preview`    | Owner only            | Full-page preview, including hidden sections    |
+| `/[slug]/preview`    | Owner only            | Full-page preview of the saved page             |
 | `/[slug]/careers`    | Public                | The candidate careers page                      |
 | `/robots.txt`        | Public                | Disallows `/login`, `/go`, `/preview-frame`, `/*/edit`, `/*/preview` |
 | `/sitemap.xml`       | Public                | Lists every published careers page              |
@@ -373,7 +373,7 @@ parsing, video URL normalisation, brand-colour contrast, and server-side payload
 validation. Pure functions only, so they run in under a second with no server or
 database.
 
-**End-to-end — `npm run test:e2e`.** 65 checks driving a real browser against a real dev
+**End-to-end — `npm run test:e2e`.** 66 checks driving a real browser against a real dev
 server and a real Supabase project: sign in, restyle, edit the hero, hide and reorder
 sections, save, reload and confirm persistence, preview, the public page, search, both
 filters, the empty state, keyboard focus, heading structure, JSON-LD, a real 404 on an

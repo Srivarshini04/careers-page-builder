@@ -189,7 +189,17 @@ try {
 
   await page.getByRole("button", { name: /^Hide Benefits and perks$/ }).click();
   await page.waitForTimeout(300);
-  check("hiding a section dims it in the preview", (await preview().getByText(/candidates won.t see this section/i).count()) > 0);
+  const previewHeadings = () => preview().locator("main section[aria-labelledby] h2").allTextContents();
+  check(
+    "hiding a section removes it from the preview entirely",
+    !(await previewHeadings()).includes("Benefits and perks"),
+  );
+  check(
+    "and drops it from the header nav",
+    !(await preview().locator("nav[aria-label='Page sections'] a").allTextContents()).includes(
+      "Benefits and perks",
+    ),
+  );
 
   await page.getByRole("button", { name: /^Move What we believe up$/ }).click();
   await page.waitForTimeout(300);
@@ -233,13 +243,21 @@ try {
   // ---------------------------------------------------------------- preview route
   await page.goto(`${BASE}/northwind-labs/preview`, { waitUntil: "networkidle" });
   check("preview shows the recruiter toolbar", await page.getByRole("link", { name: /back to editor/i }).isVisible());
-  check("preview still shows hidden sections, dimmed", (await page.getByText(/candidates won.t see this section/i).count()) > 0);
+  check(
+    "the preview route also omits hidden sections",
+    !(await page.locator("main section[aria-labelledby] h2").allTextContents()).includes(
+      "Benefits and perks",
+    ),
+  );
 
   // ---------------------------------------------------------------- candidate page
   await page.goto(`${BASE}/northwind-labs/careers`, { waitUntil: "networkidle" });
   check("public page reflects the saved hero", /ship infrastructure/i.test((await page.getByRole("heading", { level: 1 }).textContent()) ?? ""));
   check("hidden section is absent for candidates", (await page.getByRole("heading", { name: "Benefits and perks" }).count()) === 0);
-  check("no preview-only markers leak to candidates", (await page.getByText(/candidates won.t see this section/i).count()) === 0);
+  check(
+    "no preview-only markers anywhere",
+    (await page.getByText(/candidates won.t see this section/i).count()) === 0,
+  );
   check(
     "careers header links back to the company directory",
     (await page.getByRole("link", { name: /browse all companies/i }).getAttribute("href")) === "/",

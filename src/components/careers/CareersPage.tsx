@@ -20,18 +20,21 @@ import { CultureVideo } from "./CultureVideo";
  */
 export function CareersPage({
   data,
-  mode = "live",
   initialFilters,
 }: {
   data: CareersPageData;
-  /** "draft" dims hidden sections instead of removing them (preview + builder). */
-  mode?: "live" | "draft";
   initialFilters?: Partial<JobFilterState>;
 }) {
   const { company, sections, jobs } = data;
-  const isDraft = mode === "draft";
-  const renderedSections = isDraft ? sections : sections.filter((s) => s.is_visible);
-  const navSections = renderedSections.filter((s) => s.is_visible);
+
+  /*
+   * Hidden sections are dropped everywhere, including the builder's live pane and the
+   * preview route. They used to render dimmed with a "candidates won't see this" label,
+   * which meant the preview showed something no visitor ever gets. The structure panel
+   * already lists hidden sections and marks them, so nothing is lost by making the
+   * preview show exactly the published result.
+   */
+  const renderedSections = sections.filter((section) => section.is_visible);
 
   // The culture video belongs with "Life at ..." when that section exists; otherwise it
   // gets its own block so setting the URL always has a visible effect.
@@ -49,7 +52,7 @@ export function CareersPage({
         Skip to open roles
       </a>
 
-      <CareersHeader company={company} sections={navSections} jobCount={jobs.length} />
+      <CareersHeader company={company} sections={renderedSections} jobCount={jobs.length} />
 
       <main>
         <CareersHero company={company} jobCount={jobs.length} />
@@ -59,7 +62,6 @@ export function CareersPage({
             key={section.id}
             section={section}
             index={index}
-            showHiddenMarker={isDraft}
             media={
               section.id === lifeSection?.id ? (
                 <CultureVideo

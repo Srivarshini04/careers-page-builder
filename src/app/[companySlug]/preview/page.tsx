@@ -18,9 +18,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * Recruiter-only, full-page preview of the *saved* state — including sections that are
- * hidden from candidates, which are dimmed and labelled rather than removed. It renders
- * the same <CareersPage> as the public route, so what you approve here is what ships.
+ * Recruiter-only, full-page preview of the *saved* state, rendered exactly as candidates
+ * receive it — hidden sections are omitted here too, and the toolbar reports how many.
+ * It renders the same <CareersPage> as the public route, so what you approve here is
+ * what ships. Unlike /careers it works before the page is published.
  */
 export default async function PreviewPage({
   params,
@@ -81,8 +82,8 @@ export default async function PreviewPage({
               )}
               {hiddenCount > 0 ? (
                 <span className="ml-3 hidden sm:inline">
-                  {hiddenCount} hidden {hiddenCount === 1 ? "section" : "sections"}{" "}
-                  shown dimmed
+                  {hiddenCount} hidden {hiddenCount === 1 ? "section" : "sections"} not
+                  shown
                 </span>
               ) : null}
             </p>
@@ -108,7 +109,7 @@ export default async function PreviewPage({
         </div>
       </div>
 
-      <CareersPage data={{ company, sections, jobs }} mode="draft" />
+      <CareersPage data={{ company, sections, jobs }} />
     </>
   );
 }

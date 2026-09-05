@@ -1,5 +1,3 @@
-import { EyeOff } from "lucide-react";
-
 import { RichText } from "@/components/ui/RichText";
 import { cn } from "@/lib/utils/cn";
 import type { CareerSection } from "@/types";
@@ -17,20 +15,16 @@ export function CareerSectionBlock({
   section,
   index,
   media,
-  showHiddenMarker = false,
 }: {
   section: CareerSection;
   index: number;
   media?: React.ReactNode;
-  /** Preview mode renders hidden sections dimmed instead of removing them. */
-  showHiddenMarker?: boolean;
 }) {
   const anchor = sectionAnchor(section);
   const headingId = `${anchor}-heading`;
   const isGrid = section.section_type === "values" || section.section_type === "benefits";
   const isCentred = isGrid || section.section_type === "life";
   const tinted = index % 2 === 1;
-  const hiddenInPreview = showHiddenMarker && !section.is_visible;
 
   return (
     <section
@@ -39,16 +33,8 @@ export function CareerSectionBlock({
       className={cn(
         "scroll-mt-16 border-b border-ink-100",
         tinted ? "bg-ink-50/70" : "bg-white",
-        hiddenInPreview && "relative opacity-55",
       )}
     >
-      {hiddenInPreview ? (
-        <p className="mx-auto flex max-w-6xl items-center gap-1.5 px-4 pt-4 text-xs font-medium text-ink-500 sm:px-6 lg:px-8">
-          <EyeOff aria-hidden="true" className="h-3.5 w-3.5" />
-          Hidden — candidates won&apos;t see this section
-        </p>
-      ) : null}
-
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         {isCentred ? (
           <div className={cn("mx-auto", isGrid ? "max-w-5xl" : "max-w-3xl")}>

@@ -114,7 +114,6 @@ export default async function PublicCareersPage({
       />
       <CareersPage
         data={data}
-        mode="live"
         initialFilters={{ query: q ?? "", location: location ?? "", jobType: type ?? "" }}
       />
     </>

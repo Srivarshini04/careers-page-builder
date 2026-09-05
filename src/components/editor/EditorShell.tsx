@@ -317,7 +317,7 @@ export function EditorShell({
             onClickCapture={swallowOutboundClicks}
           >
             <PreviewSurface device={device} onDeviceChange={setDevice}>
-              <CareersPage data={previewData} mode="draft" />
+              <CareersPage data={previewData} />
             </PreviewSurface>
           </div>
         </div>
