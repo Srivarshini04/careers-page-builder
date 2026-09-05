@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d9dde5;
+  --color-ink-300: #b8c0ce;
+  --color-ink-400: #8d99ad;
+  --color-ink-500: #6b7891;
+  --color-ink-600: #556076;
+  --color-ink-700: #454e60;
+  --color-ink-800: #2f3542;
+  --color-ink-900: #1b1f28;
+}
+
+:root {
+  /* Overridden per-company at render time on the careers page wrapper. */
+  --brand-primary: #4f46e5;
+  --brand-secondary: #0f172a;
+  --brand-on-primary: #ffffff;
+  --brand-primary-soft: rgba(79, 70, 229, 0.1);
+}
+
+* {
+  min-width: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* A single, consistent focus treatment across the whole product. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
