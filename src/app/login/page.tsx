@@ -70,13 +70,14 @@ export default async function LoginPage({
               "radial-gradient(900px 520px at 15% 10%, rgba(99,91,255,0.5), transparent 62%), radial-gradient(760px 520px at 95% 90%, rgba(56,189,248,0.28), transparent 60%)",
           }}
         />
-        <div className="relative flex h-full flex-col justify-between gap-10 p-12 text-white xl:p-14">
+        <div className="relative flex h-full flex-col gap-10 p-12 text-white xl:p-14">
           <div className="inline-flex items-center gap-2 text-sm font-semibold">
             <Layers className="h-5 w-5" />
             Careers Page Builder
           </div>
 
-          <div className="grid items-center gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+          {/* Centred in the remaining space, now that nothing anchors the bottom. */}
+          <div className="grid flex-1 content-center items-center gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
             <div>
               <p className="text-3xl leading-tight font-semibold tracking-tight text-balance xl:text-4xl">
                 Design. Build. Publish.
@@ -93,8 +94,6 @@ export default async function LoginPage({
               <AppPreviewArt />
             </div>
           </div>
-
-          <p className="text-sm text-white/50">Whitecarrot assignment prototype</p>
         </div>
       </aside>
     </div>
