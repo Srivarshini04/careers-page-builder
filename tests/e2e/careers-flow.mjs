@@ -98,9 +98,7 @@ try {
     await page.getByRole("heading", { name: /sign in to your workspace/i }).isVisible(),
   );
   await page.getByRole("button", { name: /^sign in$/i }).click();
-  // 60s, not 20s: /[slug]/edit only compiles on the first *authenticated* navigation —
-  // an anonymous warm-up request is redirected before the page component is ever built.
-  await page.waitForURL(/\/northwind-labs\/edit/, { timeout: 60000 });
+  await page.waitForURL(/\/northwind-labs\/edit/, { timeout: 20000 });
   check("login lands on the company this recruiter owns", page.url().includes("/northwind-labs/edit"));
 
   // ---------------------------------------------------------------- builder: branding
