@@ -4,7 +4,8 @@ A small ATS module. Recruiters sign in and build a branded careers page for thei
 company; candidates visit that company's public page and browse open roles.
 
 **Live demo:** ✍️ https://careers-page-builder-tfhtql2ds-srivarshini04s-projects.vercel.app/
-**Demo video:** ✍️ _paste your video link_
+
+**Demo video:** ✍️ https://www.loom.com/share/5ae1dcfac0e94b709d1d469e84775667
 
 ---
 
