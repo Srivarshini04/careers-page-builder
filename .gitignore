@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch diagnostic scripts (kept out of the repo)
+/diag.mjs
+/check*.mjs
+/shot.mjs
